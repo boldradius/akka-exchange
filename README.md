@@ -12,7 +12,7 @@ The design of the system is to look sort of like a real live online trading exch
 
 Two types of security are tradeable:
   - Stocks 
-    * Identifier: Stock Symbol 
+    * Identifier: [Ticker Symbol](https://en.wikipedia.org/wiki/Ticker_symbol)
     * Exchange Type: i.e., FTSE, NYSE, NASDAQ, etc.
   - Bonds 
     * Identifier: [CUSIP](https://en.wikipedia.org/wiki/CUSIP)
