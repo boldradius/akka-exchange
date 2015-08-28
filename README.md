@@ -15,7 +15,7 @@ Two types of security are tradeable:
     * Identifier: Stock Symbol 
     * Exchange Type: i.e., FTSE, NYSE, NASDAQ, etc.
   - Bonds 
-    * Identifier: CUSIP 
+    * Identifier: [CUSIP](https://en.wikipedia.org/wiki/CUSIP)
     * Bond Type: i.e., Municipal, Corporate, Treasury, etc
 
 ### Architecture
