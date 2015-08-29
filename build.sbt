@@ -21,6 +21,7 @@ lazy val commonSettings = Seq(
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
+    "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
     "io.kamon" % "sigar-loader" % sigarLoaderVersion,
     // for the saner groovy config of Logback
@@ -41,11 +42,7 @@ lazy val util = project.
     )
   )
 
-lazy val tradeEngine = project.
-  settings(commonSettings: _*).
-  settings().
-  dependsOn(util)
-
+addCommandAlias("journal", "runMain com.boldradius.akka_exchange.journal.SharedJournalNodeApp -Dakka.remote.netty.tcp.port=2571 -Dakka.cluster.roles.0=shared-journal")
 
 lazy val frontend = project.
   settings(commonSettings: _*).
@@ -57,39 +54,18 @@ lazy val frontend = project.
   ).
   dependsOn(util)
 
-lazy val networkTrade = project.
+addCommandAlias("fe", "runMain com.boldradius.akka_exchange.frontend.FrontendEngineNodeApp -Dakka.remote.netty.tcp.port=2551")
+
+addCommandAlias("fe2", "runMain com.boldradius.akka_exchange.frontend.FrontendEngineNodeApp -Dakka.remote.netty.tcp.port=2561")
+
+lazy val tradeEngine = project.
   settings(commonSettings: _*).
-  settings(
-    libraryDependencies ++= Seq(
-      "com.typesafe.akka" % "akka-stream-experimental_2.11" % akkaStreamVersion
-    )
-    
-  ).
+  settings().
   dependsOn(util)
 
+addCommandAlias("te", "runMain com.boldradius.akka_exchange.trade.engine.TradeEngineNodeApp -Dakka.remote.netty.tcp.port=2552")
 
-
-lazy val securitiesDB = project.
-  settings(commonSettings: _*).
-  settings(
-    libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
-      "com.typesafe.akka" %% "akka-persistence" % akkaVersion
-    )
-    
-  ).
-  dependsOn(util)
-
-lazy val tradeDB = project.
-  settings(commonSettings: _*).
-  settings(
-    libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
-      "com.typesafe.akka" %% "akka-persistence" % akkaVersion
-    )
-    
-  ).
-  dependsOn(util)
+addCommandAlias("te2", "runMain com.boldradius.akka_exchange.trade.engine.TradeEngineNodeApp -Dakka.remote.netty.tcp.port=2562")
 
 
 lazy val ticker = project.
@@ -98,8 +74,53 @@ lazy val ticker = project.
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion
     )
+
+  ).
+  dependsOn(util)
+
+addCommandAlias("tick", "runMain com.boldradius.akka_exchange.TickerNodeApp -Dakka.remote.netty.tcp.port=2553")
+
+addCommandAlias("tick2", "runMain com.boldradius.akka_exchange.TickerNodeApp -Dakka.remote.netty.tcp.port=2563")
+
+
+lazy val securitiesDB = project.
+  settings(commonSettings: _*).
+  settings(
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
+    )
     
   ).
   dependsOn(util)
 
+addCommandAlias("sdb", "runMain com.boldradius.akka_exchange.securities.db.SecuritiesDBNodeApp -Dakka.remote.netty.tcp.port=2554")
+
+addCommandAlias("sdb2", "runMain com.boldradius.akka_exchange.securities.db.SecuritiesDBNodeApp -Dakka.remote.netty.tcp.port=2564")
+
+lazy val tradeDB = project.
+  settings(commonSettings: _*).
+  settings(
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
+    )
+    
+  ).
+  dependsOn(util)
+
+addCommandAlias("sdb", "runMain com.boldradius.akka_exchange.trade.db.TradeDBNodeApp -Dakka.remote.netty.tcp.port=2555")
+
+addCommandAlias("sdb2", "runMain com.boldradius.akka_exchange.trade.db.TradeDBNodeApp -Dakka.remote.netty.tcp.port=2565")
+
+
+lazy val networkTrade = project.
+  settings(commonSettings: _*).
+  settings(
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" % "akka-stream-experimental_2.11" % akkaStreamVersion
+    )
+
+  ).
+  dependsOn(util)
+
+addCommandAlias("net", "runMain com.boldradius.akka_exchange.frontend.FrontendEngineNodeApp -Dakka.remote.netty.tcp.port=2556")
 
