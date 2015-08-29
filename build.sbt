@@ -22,7 +22,10 @@ lazy val commonSettings = Seq(
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
-    "io.kamon" % "sigar-loader" % sigarLoaderVersion
+    "io.kamon" % "sigar-loader" % sigarLoaderVersion,
+    // for the saner groovy config of Logback
+    "org.codehaus.groovy" % "groovy" % "2.4.3"
+
   )
 )
 
