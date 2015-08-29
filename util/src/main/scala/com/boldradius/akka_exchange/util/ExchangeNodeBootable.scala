@@ -1,9 +1,3 @@
-package com.boldradius.akka_exchange.util
-
-import akka.actor.{Props, ActorSystem}
-import akka.cluster.Cluster
-import com.boldradius.akka_exchange.journal.{SharedJournalFinder, SharedJournal}
-
 /**
  * Copyright © 2015, BoldRadius Solutions
  *
@@ -19,23 +13,53 @@ import com.boldradius.akka_exchange.journal.{SharedJournalFinder, SharedJournal}
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-trait ExchangeNodeBootable {
-  val findJournal: Boolean = true
-  implicit val system = ActorSystem("akka-exchange")
+package com.boldradius.akka_exchange.util
 
-  val cluster = Cluster(system)
+import akka.actor.{Props, ActorSystem}
+import akka.cluster.Cluster
+import com.boldradius.akka_exchange.journal.{SharedJournalFinder, SharedJournal}
+import scala.collection.breakOut
 
 
-  val persistentJournal = if (findJournal) {
-    println("Finding Shared Journal.")
+abstract class ExchangeNodeBootable extends App {
 
-    system.actorOf(
-      Props(
-        classOf[SharedJournalFinder],
-        SharedJournalFinder.name
+    fetchSystemProperties(args)
+
+    val findJournal: Boolean = true
+
+
+    implicit val system = ActorSystem("akka-exchange")
+
+    val cluster = Cluster(system)
+
+
+    val persistentJournal = if (findJournal) {
+      println("Finding Shared Journal.")
+
+      system.actorOf(
+        Props(
+          classOf[SharedJournalFinder],
+          SharedJournalFinder.name
+        )
       )
-    )
-  } else system.deadLetters
+    } else system.deadLetters
 
 
+  /**
+   * Sets us up so any startup args are merged as system properties
+   */
+  def fetchSystemProperties(args: Array[String]) {
+    val Property = """(\S+)=(\S+)""".r
+
+    val options: Map[String, String] = if (args.length > 0)
+      args.collect {
+        case Property(key, value) => key -> value
+      }(breakOut)
+    else
+      Map.empty[String, String]
+
+    for ((key, value) <- options if key.startsWith("-D"))
+      System.setProperty(key.substring(2), value)
+
+  }
 }
