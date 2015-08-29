@@ -6,10 +6,11 @@ organization := "com.boldradius"
 version := "0.1-SNAPSHOT"
  
  
-val akkaVersion    = "2.4.0-RC1"
+val akkaVersion        = "2.4.0-RC1"
 val akkaStreamVersion  = "1.0"
 val akkaHttpVersion    = "1.0"
 val sigarLoaderVersion = "1.6.6-rev002"
+val logbackVersion     = "1.1.3"
 
 
 lazy val commonSettings = Seq( 
@@ -19,18 +20,26 @@ lazy val commonSettings = Seq(
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
+    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
+    "ch.qos.logback" % "logback-classic" % logbackVersion,
     "io.kamon" % "sigar-loader" % sigarLoaderVersion
   )
 )
 
-lazy val util = (project.
+lazy val util = project.
   settings(commonSettings: _*).
   settings(
-    
+    scalacOptions := Seq(
+      "-encoding",
+      "UTF-8",
+      "-target:jvm-1.8",
+      "-deprecation",
+      "-language:postfixOps"
+    )
   )
-)
 
-lazy val frontend = (project.
+
+lazy val frontend = project.
   settings(commonSettings: _*).
   settings(
     libraryDependencies ++= Seq(
@@ -39,9 +48,8 @@ lazy val frontend = (project.
     )
   ).
   dependsOn(util)
-)
 
-lazy val networkTrade = (project.
+lazy val networkTrade = project.
   settings(commonSettings: _*).
   settings(
     libraryDependencies ++= Seq(
@@ -51,9 +59,9 @@ lazy val networkTrade = (project.
   ).
   dependsOn(util)
 
-)
 
-lazy val securitiesDB = (project.
+
+lazy val securitiesDB = project.
   settings(commonSettings: _*).
   settings(
     libraryDependencies ++= Seq(
@@ -64,9 +72,7 @@ lazy val securitiesDB = (project.
   ).
   dependsOn(util)
 
-)
-
-lazy val tradeDB = (project.
+lazy val tradeDB = project.
   settings(commonSettings: _*).
   settings(
     libraryDependencies ++= Seq(
@@ -77,9 +83,8 @@ lazy val tradeDB = (project.
   ).
   dependsOn(util)
 
-)
 
-lazy val ticker = (project.
+lazy val ticker = project.
   settings(commonSettings: _*).
   settings(
     libraryDependencies ++= Seq(
@@ -89,5 +94,4 @@ lazy val ticker = (project.
   ).
   dependsOn(util)
 
-)
 
