@@ -64,6 +64,9 @@ object SharedJournalFinder {
  * All nodes will need to start a copy of this at boot,
  * it listens to the cluster to find the node running the Shared Journal,
  * to allow persistence to work.
+ *
+ * TODO: This should probably stay running, and listen for termination of the journal,
+ * sending an exception to actorsystem as a result.
  */
 class SharedJournalFinder extends Actor with ActorLogging {
   log.info("Searching for Shared Journal...")
