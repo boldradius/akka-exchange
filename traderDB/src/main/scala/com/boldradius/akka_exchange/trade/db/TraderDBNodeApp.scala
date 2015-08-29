@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.boldradius.akka_exchange.securities.db
+package com.boldradius.akka_exchange.trade.db
 
 import com.boldradius.akka_exchange.journal.util.JournaledExchangeNodeBootable
 
-object SecuritiesDBNodeApp extends JournaledExchangeNodeBootable {
+object TraderDBNodeApp extends JournaledExchangeNodeBootable {
 
 }
 

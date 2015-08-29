@@ -15,34 +15,20 @@
  */
 package com.boldradius.akka_exchange.util
 
-import akka.actor.{Props, ActorSystem}
+import akka.actor.{ActorSystem, Props}
 import akka.cluster.Cluster
-import com.boldradius.akka_exchange.journal.{SharedJournalFinder, SharedJournal}
+
 import scala.collection.breakOut
 
 
 abstract class ExchangeNodeBootable extends App {
 
-    fetchSystemProperties(args)
-
-    val findJournal: Boolean = true
+  fetchSystemProperties(args)
 
 
-    implicit val system = ActorSystem("akka-exchange")
+  implicit val system = ActorSystem("akka-exchange")
 
-    val cluster = Cluster(system)
-
-
-    val persistentJournal = if (findJournal) {
-      println("Finding Shared Journal.")
-
-      system.actorOf(
-        Props(
-          classOf[SharedJournalFinder],
-          SharedJournalFinder.name
-        )
-      )
-    } else system.deadLetters
+  val cluster = Cluster(system)
 
 
   /**

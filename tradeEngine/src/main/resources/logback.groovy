@@ -2,7 +2,7 @@ appender("FILE", FileAppender) {
     file = "tradeEngine.log"
     append = false
     encoder(PatternLayoutEncoder) {
-        pattern = "[%date{HH:mm:ss.SSS}] %logger{35} - %msg%n"
+        pattern = "[%date{HH:mm:ss.SSS}] %logger{35} @ %level - %msg%n"
     }
 }
 

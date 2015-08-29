@@ -19,8 +19,8 @@ package com.boldradius.akka_exchange.journal
 import akka.actor._
 import akka.cluster.ClusterEvent._
 import akka.cluster._
-import com.boldradius.akka_exchange.util.ExchangeNodeBootable
 import akka.persistence.journal.leveldb.{ SharedLeveldbJournal, SharedLeveldbStore }
+import com.boldradius.akka_exchange.util.ExchangeNodeBootable
 
 import scala.concurrent.duration._
 
@@ -40,7 +40,13 @@ object SharedJournal {
  * an external datastore such as MySQL, Casssandra, or Kafka
  */
 object SharedJournalNodeApp extends ExchangeNodeBootable {
-  override val findJournal = false
+  val sharedJournal =
+    system.actorOf(
+      Props(new SharedLeveldbStore),
+      SharedJournal.name
+    )
+  SharedLeveldbJournal.setStore(sharedJournal, system)
+
 }
 
 object SharedJournalFinder {
@@ -60,6 +66,7 @@ object SharedJournalFinder {
  * to allow persistence to work.
  */
 class SharedJournalFinder extends Actor with ActorLogging {
+  log.info("Searching for Shared Journal...")
 
   override def preStart(): Unit =
     Cluster(context.system).subscribe(self, InitialStateAsEvents, classOf[MemberUp])
@@ -69,6 +76,10 @@ class SharedJournalFinder extends Actor with ActorLogging {
 
   private def waiting: Receive = {
     case MemberUp(member) if member hasRole SharedJournal.name =>
+      log.info(
+        "Discovered a node with the Shared Journal Role ({}). " +
+          "Checking for Journal Actor.", SharedJournal.name
+      )
       onSharedJournalMemberUp(member)
   }
 
@@ -85,9 +96,11 @@ class SharedJournalFinder extends Actor with ActorLogging {
     case ActorIdentity(_, None) =>
       log.error("Failed to locate Shared Journal. Did you start the node?")
       context.stop(self)
+      throw new LinkageError("Unable to locate required Shared Journal in the cluster. This node cannot operate safely.")
     case ReceiveTimeout =>
       log.error("Timed out during search for Shared Journal. Did you start the node?")
       context.stop(self)
+      throw new LinkageError("Unable to locate required Shared Journal in the cluster. This node cannot operate safely.")
   }
 
   private def onSharedJournalMemberUp(member: Member): Unit = {
