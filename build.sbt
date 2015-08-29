@@ -41,6 +41,11 @@ lazy val util = project.
     )
   )
 
+lazy val tradeEngine = project.
+  settings(commonSettings: _*).
+  settings().
+  dependsOn(util)
+
 
 lazy val frontend = project.
   settings(commonSettings: _*).

@@ -29,6 +29,7 @@ The system utilizes Akka clustering, and is broken into several components. Each
 
   - [Frontend Node](#frontend): The Rest API [akka-http / seed node(s)]
   - [Trade Ticker Node](#trading-users): Replicated Feed of completed trades/current prices. Utilizes Data Distribution (aka replication)
+  - [Trade Engine Node](#trade-engine): A Cluster Singleton which proxies the transactions for requested trades. Makes sure there's only ever one instance so that it can gate trades on a single item.
   - [Trading Users DB](#trading-users): Sharded Database of active users and their portfolios. Utilizes Sharding & Persistence.
   - [Securities DB Node](#securities): Sharded Database of known Securities, i.e. Stocks & Bonds. Utilizes Sharding & Persistence.
   - [Network Trade API](#network-trade-api): Network API for Trading, using a Binary Protocol. Utilizes Akka IO and Akka Streams for the sample client.
@@ -49,6 +50,10 @@ The **frontend** of the system is a node running [akka-http](http://doc.akka.io/
 An ephemeral (i.e. reboots/crashes of all Trade Ticker nodes will lose the data) node of Trade Data. This is a Replicated Feed of completed trades/current prices. 
 
 Utilizes [Akka's Data Distribution](http://doc.akka.io/docs/akka/2.4.0-RC1/scala/distributed-data.html) module for Replication, so that there's a "Primary" instance of the Trade Ticker actor, with additional nodes acting as "Secondaries" consuming data. If the Primary node crashes/is shut down, the Secondary node takes over with the replicated data.
+
+#### Trade Engine
+
+A Cluster Singleton which proxies the transactions for requested trades. Makes sure there's only ever one instance so that it can gate trades on a single item.
 
 #### Trading Users 
 Sharded Database of active users and their portfolios. Sharded for resource balancing, and Persistent, so it is tolerant to crash/shutdown/actor migration. 
