@@ -40,6 +40,7 @@ object SharedJournal {
  * an external datastore such as MySQL, Casssandra, or Kafka
  */
 object SharedJournalNodeApp extends ExchangeNodeBootable {
+
   val sharedJournal =
     system.actorOf(
       Props(new SharedLeveldbStore),

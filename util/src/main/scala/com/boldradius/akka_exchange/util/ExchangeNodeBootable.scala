@@ -22,13 +22,15 @@ import scala.collection.breakOut
 
 
 abstract class ExchangeNodeBootable extends App {
-
   fetchSystemProperties(args)
 
 
   implicit val system = ActorSystem("akka-exchange")
 
   val cluster = Cluster(system)
+
+  println("[Starting up with Serializers]: " +
+    system.settings.config.getObject("akka.actor.serializers"))
 
 
   /**

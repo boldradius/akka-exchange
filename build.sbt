@@ -55,6 +55,8 @@ lazy val journal = project.
     )
   ).dependsOn(util).enablePlugins(JavaServerAppPackaging)
 
+addCommandAlias("package-journal", "journal/universal:packageBin")
+
 // Doesn't work right due to JNI issues; you need to generate a package and run from there :(
 addCommandAlias("journal", "journal/runMain com.boldradius.akka_exchange.journal.SharedJournalNodeApp -Dakka.remote.netty.tcp.port=2571 -Dakka.cluster.roles.0=shared-journal")
 
