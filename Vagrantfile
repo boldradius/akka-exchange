@@ -23,6 +23,7 @@ Vagrant.configure(2) do |config|
     ansible.sudo = true
   end
 
+  # Shared Journal will also start on this node
   config.vm.define "frontend" do |frontend|
     frontend.vm.network "private_network", ip: "192.168.42.101"
   end
@@ -40,29 +41,38 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.define "trade_db" do |trade_db|
-    trade_db.vm.network "private_network", ip: "192.168.42.102"
+    trade_db.vm.network "private_network", ip: "192.168.42.103"
   end
 
   config.vm.define "trade_db2" do |trade_db|
-    trade_db.vm.network "private_network", ip: "192.168.42.102"
+    trade_db.vm.network "private_network", ip: "192.168.42.203"
   end
 
   config.vm.define "securities_db" do |securities_db|
-    securities_db.vm.network "private_network", ip: "192.168.42.102"
+    securities_db.vm.network "private_network", ip: "192.168.42.104"
   end
 
   config.vm.define "securities_db2" do |securities_db|
-    securities_db.vm.network "private_network", ip: "192.168.42.102"
+    securities_db.vm.network "private_network", ip: "192.168.42.204"
   end
 
 
   config.vm.define "network_trade" do |network_trade|
-    network_trade.vm.network "private_network", ip: "192.168.42.102"
+    network_trade.vm.network "private_network", ip: "192.168.42.105"
   end
 
   config.vm.define "network_trade2" do |network_trade|
-    network_trade.vm.network "private_network", ip: "192.168.42.102"
+    network_trade.vm.network "private_network", ip: "192.168.42.205"
   end
+
+  config.vm.define "trade_engine" do |trade_engine|
+    trade_engine.vm.network "private_network", ip: "192.168.42.106"
+  end
+
+  config.vm.define "trade_engine2" do |trade_engine|
+    trade_engine.vm.network "private_network", ip: "192.168.42.206"
+  end
+
 
   #(2..4).each do |i|
   #   config.vm.define "member_#{i}" do |member|
