@@ -22,7 +22,9 @@ lazy val commonSettings = Seq(
     "ch.qos.logback" % "logback-classic" % logbackVersion,
     "io.kamon" % "sigar-loader" % sigarLoaderVersion,
     // for the saner groovy config of Logback
-    "org.codehaus.groovy" % "groovy" % "2.4.3"
+    "org.codehaus.groovy" % "groovy" % "2.4.3",
+    "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
+
 
   ),
   fork in (Test, run) := true
@@ -90,10 +92,10 @@ lazy val ticker = project.
   settings(
     name := "akka-exchange-ticker",
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion
+      "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
     )
 
-  ).dependsOn(util).enablePlugins(JavaServerAppPackaging)
+  ).dependsOn(util, journal).enablePlugins(JavaServerAppPackaging)
 
 addCommandAlias("ticker", "ticker/runMain com.boldradius.akka_exchange.TickerNodeApp -Dakka.remote.netty.tcp.port=2553")
 
@@ -105,7 +107,7 @@ lazy val securitiesDB = project.
   settings(
     name := "akka-exchange-securitiesDB",
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
+      "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion
     )
     
   ).dependsOn(util, journal).enablePlugins(JavaServerAppPackaging)
