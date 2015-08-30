@@ -76,10 +76,10 @@ addCommandAlias("frontend", "frontend/runMain com.boldradius.akka_exchange.front
 
 addCommandAlias("frontend2", "frontend/runMain com.boldradius.akka_exchange.frontend.FrontendNodeApp -Dakka.remote.netty.tcp.port=2561")
 
-lazy val tradeEngine = project.
+lazy val tradeEngine = project.in(file("trade-engine")).
   settings(commonSettings: _*).
   settings(
-    name := "akka-exchange-tradeEngine"
+    name := "akka-exchange-trade-engine"
   ).dependsOn(util).enablePlugins(JavaServerAppPackaging)
 
 addCommandAlias("trade-engine", "tradeEngine/runMain com.boldradius.akka_exchange.trade.engine.TradeEngineNodeApp -Dakka.remote.netty.tcp.port=2552")
@@ -102,10 +102,10 @@ addCommandAlias("ticker", "ticker/runMain com.boldradius.akka_exchange.TickerNod
 addCommandAlias("ticker2", "ticker/runMain com.boldradius.akka_exchange.TickerNodeApp -Dakka.remote.netty.tcp.port=2563")
 
 
-lazy val securitiesDB = project.
+lazy val securitiesDB = project.in(file("securities-db")).
   settings(commonSettings: _*).
   settings(
-    name := "akka-exchange-securitiesDB",
+    name := "akka-exchange-securities-db",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion
     )
@@ -116,10 +116,10 @@ addCommandAlias("securities-db", "securitiesDB/runMain com.boldradius.akka_excha
 
 addCommandAlias("securities-db2", "securitiesDB/runMain com.boldradius.akka_exchange.securities.db.SecuritiesDBNodeApp -Dakka.remote.netty.tcp.port=2564")
 
-lazy val traderDB = project.
+lazy val traderDB = project.in(file("trader-db")).
   settings(commonSettings: _*).
   settings(
-    name := "akka-exchange-traderDB",
+    name := "akka-exchange-trader-db",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
     )
@@ -131,10 +131,10 @@ addCommandAlias("trader-db", "traderDB/runMain com.boldradius.akka_exchange.trad
 addCommandAlias("trader-db2", "traderDB/runMain com.boldradius.akka_exchange.trade.db.TraderDBNodeApp -Dakka.remote.netty.tcp.port=2565")
 
 
-lazy val networkTrade = project.
+lazy val networkTrade = project.in(file("network-trade")).
   settings(commonSettings: _*).
   settings(
-    name := "akka-exchange-networkTrade",
+    name := "akka-exchange-network-trade",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" % "akka-stream-experimental_2.11" % akkaStreamVersion
     )
