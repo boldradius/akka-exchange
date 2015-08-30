@@ -15,6 +15,7 @@
  */
 package com.boldradius.akka_exchange.domain
 
-class Trader {
+case class Trader(firstName: String,
+                  middleName: Option[String],
+                  lastName: String)
 
-}
