@@ -15,7 +15,7 @@
  */
 package com.boldradius.akka_exchange.domain
 
-sealed abstract class BondType(val description: String) extends AnyVal
+sealed abstract class BondType(val description: String)
 
 case object TreasuryBill extends BondType("U.S. Treasury Bill")
 
@@ -23,58 +23,4 @@ case object CorporateBond extends BondType("Corporate Bond")
 
 case object MunicipalBond extends BondType("Municipal Bond")
 
-import scala.collection.JavaConversions._
 
-object CUSIP {
-
-
-  val ValidLetters = Set('A', 'B', 'C', 'D', 'E', 'F', 'G',
-                         'H', 'I', 'J', 'K', 'L', 'M', 'N',
-                         'O', 'P', 'Q', 'R', 'S', 'T', 'U',
-                         'V', 'W', 'X', 'Y', 'Z')
-
-  val ValidSymbols = Set('*', '@', '#')
-
-  /**
-   * @param cusip
-   * @return
-   */
-
-  def validate(cusip: String): Boolean = {
-    // require checkdigit for now
-    if (cusip.length != 9)
-      false
-    else {
-      var sum = 0
-      for (n <- 0 to 7) {
-        val v = charCode(cusip.charAt(n))
-
-        sum = sum + (v / 10) + (v % 10)
-
-        def charCode(c: Char): Int = {
-          val x =
-            if (c >= 0 && c <= 9)
-              c
-            else if (ValidLetters.contains(c))
-              letterOrdinal(c) + 9
-            else if (c == '*')
-              36
-            else if (c == '@')
-              37
-            else if (c == '#')
-              38
-            else
-              Integer.MAX_VALUE // should cause a calc fail
-
-          if (n % 2 == 0) x * 2 else x
-        }
-
-
-
-      }
-
-    }
-  }
-
-  def letterOrdinal(c: Char): Int = c - 65 + 1
-}

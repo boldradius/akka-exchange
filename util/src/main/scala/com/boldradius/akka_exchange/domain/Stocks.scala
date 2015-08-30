@@ -23,25 +23,3 @@ case object NASDAQ extends StockExchange("NASDAQ")
 
 case object LSE extends StockExchange("London Stock Exchange")
 
-sealed abstract class StockSymbol extends AnyVal {
-  type Exchange <: StockExchange
-
-  val symbol: String
-  def exchange: Exchange
-}
-
-case class NYSESymbol(symbol: String) extends StockSymbol {
-  type Exchange = NYSE.type
-  def exchange = NYSE
-}
-
-case class NASDAQSymbol(symbol: String) extends StockSymbol {
-  type Exchange = NASDAQ.type
-  def exchange = NASDAQ
-}
-
-case class LSESymbol(symbol: String) extends StockSymbol {
-  type Exchange = LSE.type
-  def exchange = LSE
-}
-
