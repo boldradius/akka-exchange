@@ -32,10 +32,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   
 
   config.vm.provider "docker" do |docker|
-    docker.vagrant_machine = AKKA_EXCHANGE_BASE_ARTIFACT
-    docker.image = "java:8-jdk"
-    # May not be needed, as we can provision with docker-machine
-    #docker.vagrant_vagrantfile = "Vagrantfile.host"
+    ##docker.vagrant_machine = AKKA_EXCHANGE_BASE_ARTIFACT
+    ## May not be needed, as we can provision with docker-machine
+    docker.vagrant_vagrantfile = "Vagrantfile.host"
   end
 
 
@@ -44,11 +43,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 
   config.vm.define "frontend-node" do |c|
-    c.vm.provision "docker" do |docker|
-      docker.run "frontend", 
-            image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-frontend", 
-            args: "-p 8080:8080 -h frontend"
+    c.vm.provider "docker" do |docker|
+      #docker.vagrant_machine = AKKA_EXCHANGE_BASE_ARTIFACT
+      docker.image = "#{AKKA_EXCHANGE_BASE_ARTIFACT}-frontend"
+      docker.name = AKKA_EXCHANGE_BASE_ARTIFACT
+      docker.has_ssh = true
+      docker.vagrant_vagrantfile = "Vagrantfile.host"
     end
+    #c.vm.provision "docker" do |docker|
+      #docker.run "frontend", 
+            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-frontend", 
+            #args: "-p 8080:8080 -h frontend"
+    #end
     c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
   end
 
