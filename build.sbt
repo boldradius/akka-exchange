@@ -50,7 +50,8 @@ lazy val util = project.
       "-language:postfixOps"
     ),
     fork in (Test, run) := true
-  )
+  ).
+  dependsOn("root")
 
 lazy val journal = project.
   settings(commonSettings: _*).
@@ -82,7 +83,7 @@ lazy val frontend = project.
       "com.typesafe.akka" % "akka-http-experimental_2.11" % akkaHttpVersion
     ),
     // todo - change me once we figure out port(s)?
-    dockerExposedPorts := Seq(8080),
+    dockerExposedPorts := Seq(8080)
   ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
