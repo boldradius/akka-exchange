@@ -3,9 +3,9 @@
 #
 # *SETUP INSTRUCTIONS*
 #
-# 1. vagrant box add mitchellh/boot2docker
-#   - Pick appropriate provider
-#   * This sets up the base image we'll use for docker containerizing in virtualbox
+# 1. docker-machine create -d virtualbox --virtualbox-memory 4096 --virtualbox-cpu-count 2 akka-exchange
+#   - Adjust cpu count and memory as needed, remembering we'll run several nodes
+#   * This sets up an expected virtualbox container for the akka-exchange system
 #   
 #
 BOX_NAME = ENV['BOX_NAME'] || "default"
@@ -24,54 +24,80 @@ AKKA_EXCHANGE_BASE_ARTIFACT = "akka-exchange"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
+  config.ssh.insert_key = false
 
   # Disable synced folders for the Docker container
   # (prevents an NFS error on "vagrant up")
   config.vm.synced_folder ".", "/vagrant", disabled: true
   
-  # Fetch the docker Repo with java enabled images.
-  config.vm.provision "shell", inline: "docker pull java"
-  # Script currently only does publishLocal change if you don't want dev type mode
-  config.vm.provision "shell", inline: "sbt docker:publishLocal"
 
   config.vm.provider "docker" do |docker|
     docker.vagrant_machine = AKKA_EXCHANGE_BASE_ARTIFACT
     docker.image = "java:8-jdk"
-    docker.name = "#{AKKA_EXCHANGE_BASE_ARTIFACT}-container"
-    docker.vagrant_vagrantfile = "Vagrantfile.host"
-    docker.ports = ['8080:8080']
+    # May not be needed, as we can provision with docker-machine
+    #docker.vagrant_vagrantfile = "Vagrantfile.host"
   end
 
 
   # todo - add optional second nodes of each?
-  config.vm.define "docker" do |docker|
+  #config.vm.define "docker" do |docker|
 
 
-    docker.run "frontend", 
-          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-frontend", 
-          args: "-p 8080:8080 -h frontend"
-
-    docker.run "trade-engine",
-          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-trade-engine",
-          args: "-h trade-engine"
-
-    docker.run "ticker",
-          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-ticker",
-          args: "-h ticker"
-
-    docker.run "trader-db",
-          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-trader-db",
-          args: "-h trader-db"
-
-    docker.run "securities-db",
-          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-securities-db",
-          args: "-h securities-db"
-
-    docker.run "network-trade",
-          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-network-trade",
-          args: "-h network-trade"
+  config.vm.define "frontend-node" do |c|
+    c.vm.provision "docker" do |docker|
+      docker.run "frontend", 
+            image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-frontend", 
+            args: "-p 8080:8080 -h frontend"
+    end
+    c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
   end
 
-  config.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
+
+  #config.vm.define "trade-engine-node" do |c|
+    #c.vm.provision "docker" do |docker|
+      #docker.run "trade-engine",
+            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-trade-engine",
+            #args: "-h trade-engine"
+    #end
+    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
+  #end
+
+  #config.vm.define "ticker-node" do |c|
+    #c.vm.provision "docker" do |docker|
+      #docker.run "ticker",
+            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-ticker",
+            #args: "-h ticker"
+    #end
+    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
+  #end
+
+  #config.vm.define "trader-db-node" do |c|
+    #c.vm.provision "docker" do |docker|
+      #docker.run "trader-db",
+            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-trader-db",
+            #args: "-h trader-db"
+    #end
+    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
+  #end
+
+  #config.vm.define "securities-db-node" do |c|
+    #c.vm.provision "docker" do |docker|
+      #docker.run "securities-db",
+            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-securities-db",
+            #args: "-h securities-db"
+    #end
+    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
+  #end
+
+  #config.vm.define "network-trade-node" do |c|
+    #c.vm.provision "docker" do |docker|
+      #docker.run "network-trade",
+            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-network-trade",
+            #args: "-h network-trade"
+    #end
+    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
+  #end
+  #end
+
 
 end

@@ -1,6 +1,10 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 #
+# 1. vagrant box add mitchellh/boot2docker
+#   - Pick appropriate provider
+#   * This sets up the base image we'll use for docker containerizing in virtualbox
+#
 # Special hostfile for the main Vagrantfile to boot your VirtualBox.
 # You shouldn't need to mess with this much directly unless you wanna change memory/cpus
 #
