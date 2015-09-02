@@ -28,6 +28,15 @@ lazy val commonSettings = Seq(
   fork in (Test, run) := true
 )
 
+lazy val root = (project in file(".")).
+  aggregate(util, journal, frontend, 
+            tradeEngine, ticker, securitiesDB,
+            traderDB, networkTrade).
+  settings(commonSettings: _*).
+  settings(
+    // Runs OpenJDK 8. Official docker image, should be safe to use.
+    dockerBaseImage := "java:8-jdk"
+  )
 
 lazy val util = project.
   settings(commonSettings: _*).
@@ -51,18 +60,15 @@ lazy val journal = project.
       "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
       "org.iq80.leveldb" % "leveldb" % "0.7",
       "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
-    ),
-    // todo - change me once we figure out port(s)
-    dockerExposedPorts := Seq(2571),
-    dockerBaseImage := "java:8-jdk"
-  ).dependsOn(
-    util
-  ).enablePlugins(
-    JavaServerAppPackaging, 
-    DockerPlugin
-  )
+    )
+  ).
+  dependsOn(util).
+  enablePlugins(JavaServerAppPackaging, DockerPlugin)
+
+
 
 addCommandAlias("package-journal", "journal/universal:packageBin")
+addCommandAlias("dockerize-journal", "journal/docker:publishLocal")
 
 // Doesn't work right due to JNI issues; you need to generate a package and run from there :(
 addCommandAlias("journal", "journal/runMain com.boldradius.akka_exchange.journal.SharedJournalNodeApp -Dakka.remote.netty.tcp.port=2571 -Dakka.cluster.roles.0=shared-journal")
@@ -74,8 +80,14 @@ lazy val frontend = project.
     libraryDependencies ++= Seq(
       "com.typesafe.akka" % "akka-http-core-experimental_2.11" % akkaHttpVersion,
       "com.typesafe.akka" % "akka-http-experimental_2.11" % akkaHttpVersion
-    )
-  ).dependsOn(util).enablePlugins(JavaServerAppPackaging)
+    ),
+    // todo - change me once we figure out port(s)?
+    dockerExposedPorts := Seq(8080),
+  ).
+  dependsOn(util).
+  enablePlugins(JavaServerAppPackaging, DockerPlugin)
+
+addCommandAlias("dockerize-journal", "frontend/docker:publishLocal")
 
 addCommandAlias("frontend", "frontend/runMain com.boldradius.akka_exchange.frontend.FrontendNodeApp -Dakka.remote.netty.tcp.port=2551")
 
@@ -85,7 +97,9 @@ lazy val tradeEngine = project.in(file("trade-engine")).
   settings(commonSettings: _*).
   settings(
     name := "akka-exchange-trade-engine"
-  ).dependsOn(util).enablePlugins(JavaServerAppPackaging)
+  ).
+  dependsOn(util).
+  enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
 addCommandAlias("trade-engine", "tradeEngine/runMain com.boldradius.akka_exchange.trade.engine.TradeEngineNodeApp -Dakka.remote.netty.tcp.port=2552")
 
@@ -100,14 +114,16 @@ lazy val ticker = project.
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
     )
 
-  ).dependsOn(util, journal).enablePlugins(JavaServerAppPackaging)
+  ).
+  dependsOn(util, journal).
+  enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
 addCommandAlias("ticker", "ticker/runMain com.boldradius.akka_exchange.TickerNodeApp -Dakka.remote.netty.tcp.port=2553")
 
 addCommandAlias("ticker2", "ticker/runMain com.boldradius.akka_exchange.TickerNodeApp -Dakka.remote.netty.tcp.port=2563")
 
 
-lazy val securitiesDB = project.in(file("securities-db")).
+lazy val securitiesDB = (project in file("securities-db")).
   settings(commonSettings: _*).
   settings(
     name := "akka-exchange-securities-db",
@@ -115,13 +131,15 @@ lazy val securitiesDB = project.in(file("securities-db")).
       "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion
     )
     
-  ).dependsOn(util, journal).enablePlugins(JavaServerAppPackaging)
+  ).
+  dependsOn(util, journal).
+  enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
 addCommandAlias("securities-db", "securitiesDB/runMain com.boldradius.akka_exchange.securities.db.SecuritiesDBNodeApp -Dakka.remote.netty.tcp.port=2554")
 
 addCommandAlias("securities-db2", "securitiesDB/runMain com.boldradius.akka_exchange.securities.db.SecuritiesDBNodeApp -Dakka.remote.netty.tcp.port=2564")
 
-lazy val traderDB = project.in(file("trader-db")).
+lazy val traderDB = (project in file("trader-db")).
   settings(commonSettings: _*).
   settings(
     name := "akka-exchange-trader-db",
@@ -129,14 +147,16 @@ lazy val traderDB = project.in(file("trader-db")).
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
     )
     
-  ).dependsOn(util, journal).enablePlugins(JavaServerAppPackaging)
+  ).
+  dependsOn(util, journal).
+  enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
 addCommandAlias("trader-db", "traderDB/runMain com.boldradius.akka_exchange.trade.db.TraderDBNodeApp -Dakka.remote.netty.tcp.port=2555")
 
 addCommandAlias("trader-db2", "traderDB/runMain com.boldradius.akka_exchange.trade.db.TraderDBNodeApp -Dakka.remote.netty.tcp.port=2565")
 
 
-lazy val networkTrade = project.in(file("network-trade")).
+lazy val networkTrade = (project in file("network-trade")).
   settings(commonSettings: _*).
   settings(
     name := "akka-exchange-network-trade",
@@ -144,7 +164,9 @@ lazy val networkTrade = project.in(file("network-trade")).
       "com.typesafe.akka" % "akka-stream-experimental_2.11" % akkaStreamVersion
     )
 
-  ).dependsOn(util).enablePlugins(JavaServerAppPackaging)
+  ).
+  dependsOn(util, journal).
+  enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
 addCommandAlias("network-trade", "networkTrade/runMain com.boldradius.akka_exchange.trade.network.NetworkTradeNodeApp -Dakka.remote.netty.tcp.port=2556")
 
