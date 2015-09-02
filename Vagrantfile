@@ -35,6 +35,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "shell", inline: "sbt docker:publishLocal"
 
   config.vm.provider "docker" do |docker|
+    docker.vagrant_machine = AKKA_EXCHANGE_BASE_ARTIFACT
     docker.image = "java:8-jdk"
     docker.name = "#{AKKA_EXCHANGE_BASE_ARTIFACT}-container"
     docker.vagrant_vagrantfile = "Vagrantfile.host"
@@ -43,7 +44,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 
   # todo - add optional second nodes of each?
-  config.vm.provision "docker" do |docker|
+  config.vm.define "docker" do |docker|
 
 
     docker.run "frontend", 
@@ -70,5 +71,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-network-trade",
           args: "-h network-trade"
   end
+
+  config.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
 
 end
