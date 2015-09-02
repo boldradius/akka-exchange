@@ -24,11 +24,8 @@ lazy val commonSettings = Seq(
     // for the saner groovy config of Logback
     "org.codehaus.groovy" % "groovy" % "2.4.3",
     "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
-
-
   ),
   fork in (Test, run) := true
-
 )
 
 
@@ -54,8 +51,16 @@ lazy val journal = project.
       "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
       "org.iq80.leveldb" % "leveldb" % "0.7",
       "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
-    )
-  ).dependsOn(util).enablePlugins(JavaServerAppPackaging)
+    ),
+    // todo - change me once we figure out port(s)
+    dockerExposedPorts := Seq(2571),
+    dockerBaseImage := "java:8-jdk"
+  ).dependsOn(
+    util
+  ).enablePlugins(
+    JavaServerAppPackaging, 
+    DockerPlugin
+  )
 
 addCommandAlias("package-journal", "journal/universal:packageBin")
 
