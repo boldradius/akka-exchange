@@ -23,7 +23,8 @@ lazy val commonSettings = Seq(
     "io.kamon" % "sigar-loader" % sigarLoaderVersion,
     // for the saner groovy config of Logback
     "org.codehaus.groovy" % "groovy" % "2.4.3",
-    "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
+    "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
+    "net.ceedubs" %% "ficus" % "1.1.2"
   ),
   fork in (Test, run) := true
 )
@@ -61,7 +62,9 @@ lazy val journal = project.
       "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
       "org.iq80.leveldb" % "leveldb" % "0.7",
       "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
-    )
+    ),
+    // todo - change me once we figure out port(s)?
+    dockerExposedPorts := Seq(2551)
   ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -83,7 +86,7 @@ lazy val frontend = project.
       "com.typesafe.akka" % "akka-http-experimental_2.11" % akkaHttpVersion
     ),
     // todo - change me once we figure out port(s)?
-    dockerExposedPorts := Seq(8080)
+    dockerExposedPorts := Seq(2551, 8080)
   ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -97,7 +100,9 @@ addCommandAlias("frontend2", "frontend/runMain com.boldradius.akka_exchange.fron
 lazy val tradeEngine = project.in(file("trade-engine")).
   settings(commonSettings: _*).
   settings(
-    name := "akka-exchange-trade-engine"
+    name := "akka-exchange-trade-engine",
+    // todo - change me once we figure out port(s)?
+    dockerExposedPorts := Seq(2551)
   ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -113,7 +118,9 @@ lazy val ticker = project.
     name := "akka-exchange-ticker",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
-    )
+    ),
+    // todo - change me once we figure out port(s)?
+    dockerExposedPorts := Seq(2551)
 
   ).
   dependsOn(util, journal).
@@ -130,7 +137,9 @@ lazy val securitiesDB = (project in file("securities-db")).
     name := "akka-exchange-securities-db",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion
-    )
+    ),
+    // todo - change me once we figure out port(s)?
+    dockerExposedPorts := Seq(2551)
     
   ).
   dependsOn(util, journal).
@@ -146,7 +155,9 @@ lazy val traderDB = (project in file("trader-db")).
     name := "akka-exchange-trader-db",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
-    )
+    ),
+    // todo - change me once we figure out port(s)?
+    dockerExposedPorts := Seq(2551)
     
   ).
   dependsOn(util, journal).
@@ -163,7 +174,9 @@ lazy val networkTrade = (project in file("network-trade")).
     name := "akka-exchange-network-trade",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" % "akka-stream-experimental_2.11" % akkaStreamVersion
-    )
+    ),
+    // todo - change me once we figure out port(s)?
+    dockerExposedPorts := Seq(2551)
 
   ).
   dependsOn(util, journal).

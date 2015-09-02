@@ -22,6 +22,7 @@ import akka.stream.ActorMaterializer
 import com.boldradius.akka_exchange.util.ExchangeNodeBootable
 
 object FrontendNodeApp extends ExchangeNodeBootable {
+  import net.ceedubs.ficus.Ficus._
 
   implicit val materializer = ActorMaterializer()
   val route =
@@ -32,8 +33,12 @@ object FrontendNodeApp extends ExchangeNodeBootable {
         }
       }
     }
-  
-  Http().bindAndHandle(route, "localhost", 8080)
+
+  val httpPort = config.as[Int]("akka-exchange.cluster.frontend.port")
+
+  val httpAddr = config.as[String]("akka-exchange.cluster.frontend.address")
+
+  Http().bindAndHandle(route, httpAddr, httpPort)
 }
 
 // vim: set ts=2 sw=2 sts=2 et:

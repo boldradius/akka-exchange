@@ -22,15 +22,18 @@ import scala.collection.breakOut
 
 
 abstract class ExchangeNodeBootable extends App {
+  import net.ceedubs.ficus.Ficus._
   fetchSystemProperties(args)
 
 
   implicit val system = ActorSystem("akka-exchange")
 
+  implicit val config = system.settings.config
+
   val cluster = Cluster(system)
 
-  println("[Starting up with Serializers]: " +
-    system.settings.config.getObject("akka.actor.serializers"))
+  println("[Starting up with Seed Nodes]: " +
+    config.getStringList("akka.cluster.seed-nodes"))
 
 
   /**
