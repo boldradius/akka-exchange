@@ -1,6 +1,13 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 #
+# *SETUP INSTRUCTIONS*
+#
+# 1. vagrant box add mitchellh/boot2docker
+#   - Pick appropriate provider
+#   * This sets up the base image we'll use for docker containerizing in virtualbox
+#   
+#
 BOX_NAME = ENV['BOX_NAME'] || "default"
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
@@ -16,47 +23,51 @@ AKKA_EXCHANGE_VERSION = open('build.sbt') { |f|
 AKKA_EXCHANGE_BASE_ARTIFACT = "akka-exchange"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  
-  ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
 
+
+  # Disable synced folders for the Docker container
+  # (prevents an NFS error on "vagrant up")
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  
+  # Fetch the docker Repo with java enabled images.
+  config.vm.provision "shell", inline: "docker pull java"
   # Script currently only does publishLocal change if you don't want dev type mode
   config.vm.provision "shell", inline: "sbt docker:publishLocal"
 
-  config.vm.provider "docker" do |d|
-    d.image = "java:jdk-8"
-    d.name = AKKA_EXCHANGE_BASE_ARTIFACT
-    d.vagrant_machine = "default"
-
-    
+  config.vm.provider "docker" do |docker|
+    docker.image = "java:8-jdk"
+    docker.name = "#{AKKA_EXCHANGE_BASE_ARTIFACT}-container"
+    docker.vagrant_vagrantfile = "Vagrantfile.host"
+    docker.ports = ['8080:8080']
   end
-
-  config.ssh.insert_key = false
 
 
   # todo - add optional second nodes of each?
-  config.vm.provision "docker" do |d|
-    d.run "frontend", 
-          image: "${AKKA_EXCHANGE_BASE_ARTIFACT}-frontend", 
+  config.vm.provision "docker" do |docker|
+
+
+    docker.run "frontend", 
+          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-frontend", 
           args: "-p 8080:8080 -h frontend"
 
-    d.run "trade-engine",
-          image: "${AKKA_EXCHANGE_BASE_ARTIFACT}-trade-engine",
+    docker.run "trade-engine",
+          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-trade-engine",
           args: "-h trade-engine"
 
-    d.run "ticker",
-          image: "${AKKA_EXCHANGE_BASE_ARTIFACT}-ticker",
+    docker.run "ticker",
+          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-ticker",
           args: "-h ticker"
 
-    d.run "trader-db",
-          image: "${AKKA_EXCHANGE_BASE_ARTIFACT}-trader-db",
+    docker.run "trader-db",
+          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-trader-db",
           args: "-h trader-db"
 
-    d.run "securities-db",
-          image: "${AKKA_EXCHANGE_BASE_ARTIFACT-securities-db",
+    docker.run "securities-db",
+          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-securities-db",
           args: "-h securities-db"
 
-    d.run "network-trade",
-          image: "${AKKA_EXCHANGE_BASE_ARTIFACT}-network-trade",
+    docker.run "network-trade",
+          image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-network-trade",
           args: "-h network-trade"
   end
 
