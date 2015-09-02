@@ -1,82 +1,63 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
+#
+BOX_NAME = ENV['BOX_NAME'] || "default"
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+#Check if you have the good Vagrant version to use docker provider...
+Vagrant.require_version ">= 1.6.0"
 
-# TODO - docker support might be nice
-Vagrant.configure(2) do |config|
+# My attempt at remembering my shell fu before I recalled Vagrant files are ruby.
+#AKKA_EXCHANGE_VERSION = `grep -m 1 project build.sbt | awk -F = '{print $2}' | tr -d \" | tr -d " "`
+AKKA_EXCHANGE_VERSION = open('build.sbt') { |f|
+  version_stub = f.grep(/val projectVersion\s*=\s*"([\d\w\-\.]+?)"/)
+  version_stub[0].scan(/"([\d\w\-\.]+?)"/)[0][0]
+}
+AKKA_EXCHANGE_BASE_ARTIFACT = "akka-exchange"
 
-
-  config.vm.box = "ubuntu/trusty64_oraclejava8"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   
-  config.vm.synced_folder ".", "/vagrant"
+  ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
 
-  config.vm.provider "virtualbox" do |v|
-    v.memory = 2048
+  # Script currently only does publishLocal change if you don't want dev type mode
+  config.vm.provision "shell", inline: "sbt docker:publishLocal"
+
+  config.vm.provider "docker" do |d|
+    d.image = "java:jdk-8"
+    d.name = AKKA_EXCHANGE_BASE_ARTIFACT
+    d.vagrant_machine = "default"
+
+    
   end
 
-  if Vagrant.has_plugin?("vagrant-cachier")
-    config.cache.scope = :box
-    config.cache.enable :apt
+  config.ssh.insert_key = false
+
+
+  # todo - add optional second nodes of each?
+  config.vm.provision "docker" do |d|
+    d.run "frontend", 
+          image: "${AKKA_EXCHANGE_BASE_ARTIFACT}-frontend", 
+          args: "-p 8080:8080 -h frontend"
+
+    d.run "trade-engine",
+          image: "${AKKA_EXCHANGE_BASE_ARTIFACT}-trade-engine",
+          args: "-h trade-engine"
+
+    d.run "ticker",
+          image: "${AKKA_EXCHANGE_BASE_ARTIFACT}-ticker",
+          args: "-h ticker"
+
+    d.run "trader-db",
+          image: "${AKKA_EXCHANGE_BASE_ARTIFACT}-trader-db",
+          args: "-h trader-db"
+
+    d.run "securities-db",
+          image: "${AKKA_EXCHANGE_BASE_ARTIFACT-securities-db",
+          args: "-h securities-db"
+
+    d.run "network-trade",
+          image: "${AKKA_EXCHANGE_BASE_ARTIFACT}-network-trade",
+          args: "-h network-trade"
   end
 
-  config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "ansible/seed.yml"
-    ansible.sudo = true
-  end
-
-  # Shared Journal will also start on this node
-  config.vm.define "frontend" do |frontend|
-    frontend.vm.network "private_network", ip: "192.168.42.101"
-  end
-  
-  config.vm.define "frontend2" do |frontend|
-    frontend.vm.network "private_network", ip: "192.168.42.201"
-  end
-
-  config.vm.define "ticker" do |ticker|
-    ticker.vm.network "private_network", ip: "192.168.42.102"
-  end
-
-  config.vm.define "ticker2" do |ticker|
-    ticker.vm.network "private_network", ip: "192.168.42.202"
-  end
-
-  config.vm.define "trade_db" do |trade_db|
-    trade_db.vm.network "private_network", ip: "192.168.42.103"
-  end
-
-  config.vm.define "trade_db2" do |trade_db|
-    trade_db.vm.network "private_network", ip: "192.168.42.203"
-  end
-
-  config.vm.define "securities_db" do |securities_db|
-    securities_db.vm.network "private_network", ip: "192.168.42.104"
-  end
-
-  config.vm.define "securities_db2" do |securities_db|
-    securities_db.vm.network "private_network", ip: "192.168.42.204"
-  end
-
-
-  config.vm.define "network_trade" do |network_trade|
-    network_trade.vm.network "private_network", ip: "192.168.42.105"
-  end
-
-  config.vm.define "network_trade2" do |network_trade|
-    network_trade.vm.network "private_network", ip: "192.168.42.205"
-  end
-
-  config.vm.define "trade_engine" do |trade_engine|
-    trade_engine.vm.network "private_network", ip: "192.168.42.106"
-  end
-
-  config.vm.define "trade_engine2" do |trade_engine|
-    trade_engine.vm.network "private_network", ip: "192.168.42.206"
-  end
-
-
-  #(2..4).each do |i|
-  #   config.vm.define "member_#{i}" do |member|
-  #      member.vm.network "private_network", ip: "192.168.11.2#{i}"
-  #    end
-  #end
 end

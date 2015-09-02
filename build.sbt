@@ -6,11 +6,12 @@ val akkaStreamVersion  = "1.0"
 val akkaHttpVersion    = "1.0"
 val sigarLoaderVersion = "1.6.6-rev002"
 val logbackVersion     = "1.1.3"
+val projectVersion     = "0.1-SNAPSHOT"
 
 
 lazy val commonSettings = Seq( 
   organization := "com.boldradius",
-  version := "0.1-SNAPSHOT",
+  version := projectVersion,
   scalaVersion := "2.11.7",
   libraryDependencies ++= Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
@@ -26,7 +27,15 @@ lazy val commonSettings = Seq(
     "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
     "net.ceedubs" %% "ficus" % "1.1.2"
   ),
-  fork in (Test, run) := true
+  fork in (Test, run) := true,
+  // Runs OpenJDK 8. Official docker image, should be safe to use.
+  dockerBaseImage := "java:8-jdk",
+  dockerUpdateLatest := true,
+  dockerExposedVolumes := Seq("/opt/docker/logs"),
+  // todo: probably change me later when we have a non-snap version?
+  version in Docker := "latest",
+  // todo - change me once we figure out port(s)?
+  dockerExposedPorts := Seq(2551)
 )
 
 lazy val root = (project in file(".")).
@@ -35,8 +44,6 @@ lazy val root = (project in file(".")).
             traderDB, networkTrade).
   settings(commonSettings: _*).
   settings(
-    // Runs OpenJDK 8. Official docker image, should be safe to use.
-    dockerBaseImage := "java:8-jdk"
   )
 
 lazy val util = project.
@@ -62,9 +69,7 @@ lazy val journal = project.
       "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
       "org.iq80.leveldb" % "leveldb" % "0.7",
       "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
-    ),
-    // todo - change me once we figure out port(s)?
-    dockerExposedPorts := Seq(2551)
+    )
   ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -86,7 +91,7 @@ lazy val frontend = project.
       "com.typesafe.akka" % "akka-http-experimental_2.11" % akkaHttpVersion
     ),
     // todo - change me once we figure out port(s)?
-    dockerExposedPorts := Seq(2551, 8080)
+    dockerExposedPorts ++= Seq(8080)
   ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -100,10 +105,7 @@ addCommandAlias("frontend2", "frontend/runMain com.boldradius.akka_exchange.fron
 lazy val tradeEngine = project.in(file("trade-engine")).
   settings(commonSettings: _*).
   settings(
-    name := "akka-exchange-trade-engine",
-    // todo - change me once we figure out port(s)?
-    dockerExposedPorts := Seq(2551)
-  ).
+    name := "akka-exchange-trade-engine"  ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
@@ -118,10 +120,7 @@ lazy val ticker = project.
     name := "akka-exchange-ticker",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
-    ),
-    // todo - change me once we figure out port(s)?
-    dockerExposedPorts := Seq(2551)
-
+    )  
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -137,10 +136,7 @@ lazy val securitiesDB = (project in file("securities-db")).
     name := "akka-exchange-securities-db",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion
-    ),
-    // todo - change me once we figure out port(s)?
-    dockerExposedPorts := Seq(2551)
-    
+    )  
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -155,9 +151,7 @@ lazy val traderDB = (project in file("trader-db")).
     name := "akka-exchange-trader-db",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
-    ),
-    // todo - change me once we figure out port(s)?
-    dockerExposedPorts := Seq(2551)
+    )
     
   ).
   dependsOn(util, journal).
@@ -174,10 +168,7 @@ lazy val networkTrade = (project in file("network-trade")).
     name := "akka-exchange-network-trade",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" % "akka-stream-experimental_2.11" % akkaStreamVersion
-    ),
-    // todo - change me once we figure out port(s)?
-    dockerExposedPorts := Seq(2551)
-
+    )
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
