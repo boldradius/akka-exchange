@@ -1,10 +1,10 @@
-appender("FILE", FileAppender) {
-    file = "tradedb.log"
-    append = false
-    encoder(PatternLayoutEncoder) {
-        pattern = "[%date{HH:mm:ss.SSS}] %logger{35} @ %level - %msg%n"
-    }
-}
+//appender("FILE", FileAppender) {
+    //file = "tradedb.log"
+    //append = false
+    //encoder(PatternLayoutEncoder) {
+        //pattern = "[%date{HH:mm:ss.SSS}] %logger{35} @ %level - %msg%n"
+    //}
+//}
 
 appender("STDOUT", ConsoleAppender) {
     withJansi = true
@@ -13,5 +13,6 @@ appender("STDOUT", ConsoleAppender) {
     }
 }
 
-root(DEBUG, ["FILE"])
-root(INFO, ["STDOUT"])
+// not needed for the docker setup for now
+//root(DEBUG, ["FILE"])
+root(DEBUG, ["STDOUT"])

@@ -8,9 +8,8 @@
 # Special hostfile for the main Vagrantfile to boot your VirtualBox.
 # You shouldn't need to mess with this much directly unless you wanna change memory/cpus
 #
-# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
-# Check if you have the good Vagrant version to use docker provider...
+#Check if you have the good Vagrant version to use docker provider...
 Vagrant.require_version ">= 1.6.0"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -25,16 +24,32 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Use Vagrant's default insecure key
   #config.ssh.insert_key = false
 
-  config.vm.box = "ubuntu/trusty64"
+  #config.vm.box = "ubuntu/trusty64"
+  #BOX_NAME = 
+  BOX_NAME = "akka-exchange"
+  config.vm.box = "phusion/ubuntu-14.04-amd64"
   config.vm.provision "docker"
+  # The following line terminates all ssh connections. Therefore
+  # Vagrant will be forced to reconnect.
+  # That's a workaround to have the docker command in the PATH
+  # (This is necessary to provision properly; else Vagrant crashes after 
+  # initialising VirtualBox and has to be run a second time)
+  config.vm.provision "shell", inline:
+     "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
 
   # Disable synced folders (prevents an NFS error on "vagrant up")
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
   config.vm.provider "virtualbox" do |vbox|
     vbox.name = "akka-exchange"
-    vbox.cpus = 2
-    vbox.memory = 4096
+    vbox.cpus = 1
+    # Memory good, given how many nodes we start
+    vbox.memory = 8192
   end
+
+  # Exposes port 8080 on localhost to the VirtualBox docker host, 
+  # which forwards to the frontend node
+  config.vm.network :forwarded_port, guest: 8080, host: 8080
+  
 end
 
