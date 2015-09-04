@@ -3,10 +3,6 @@
 #
 # *SETUP INSTRUCTIONS*
 #
-# 1. docker-machine create -d virtualbox --virtualbox-memory 4096 --virtualbox-cpu-count 2 akka-exchange
-#   - Adjust cpu count and memory as needed, remembering we'll run several nodes
-#   * This sets up an expected virtualbox container for the akka-exchange system
-#   
 #
 
 BOX_NAME = "akka-exchange"
