@@ -16,13 +16,25 @@ VAGRANTFILE_API_VERSION = "2"
 #Check if you have the good Vagrant version to use docker provider...
 Vagrant.require_version ">= 1.6.0"
 
+#print "ENV Vars"
+#ENV.each {|key, value| puts "#{key} is #{value}"}
 # My attempt at remembering my shell fu before I recalled Vagrant files are ruby.
 #AKKA_EXCHANGE_VERSION = `grep -m 1 project build.sbt | awk -F = '{print $2}' | tr -d \" | tr -d " "`
-AKKA_EXCHANGE_VERSION = open('build.sbt') { |f|
-  version_stub = f.grep(/val projectVersion\s*=\s*"([\d\w\-\.]+?)"/)
-  version_stub[0].scan(/"([\d\w\-\.]+?)"/)[0][0]
-}
+#AKKA_EXCHANGE_VERSION = open('build.sbt') { |f|
+#  version_stub = f.grep(/val projectVersion\s*=\s*"([\d\w\-\.]+?)"/)
+#  version_stub[0].scan(/"([\d\w\-\.]+?)"/)[0][0]
+#}
 AKKA_EXCHANGE_BASE_ARTIFACT = "akka-exchange"
+
+COMMAND = ARGV[0]
+
+# Commands we will run SBT Staging on
+STAGE_COMMANDS = ['up', 'provision']
+# Commands we'll clean up SBT on
+CLEAN_COMMANDS = ['destroy']
+
+#puts "Running Vagrant Command '#{COMMAND}'\n"
+
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
@@ -50,8 +62,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # todo - add optional second nodes of each?
   config.vm.define "frontend-node" do |c|
-    print "\e[1m\e[43;30m  ☢ Using sbt to stage Docker for 'frontend' node ☢  \e[0m\n"
-    system("sbt frontend/docker:stage")
+    if STAGE_COMMANDS.include? COMMAND
+      print "\e[1m\e[42;30m  ⚛ Using sbt to stage Docker for 'frontend' node ⚛  \e[0m\n"
+      system("sbt frontend/docker:stage")
+    end
+    
+    if CLEAN_COMMANDS.include? COMMAND
+      print "\e[1m\e[41;30m  ☢ Using sbt to clean up code & Docker staging for 'frontend' node ☢  \e[0m\n"
+      system("sbt frontend/docker:stage")
+    end
 
     c.vm.hostname = "frontend"
     c.vm.provider "docker" do |docker|
@@ -66,8 +85,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "shared-journal-node" do |c|
-    print "\e[1m\e[43;30m  ☢ Using sbt to stage Docker for 'shared-journal' node ☢  \e[0m\n"
-    system("sbt journal/docker:stage")
+    if STAGE_COMMANDS.include? COMMAND
+      print "\e[1m\e[42;30m  ⚛ Using sbt to stage Docker for 'shared-journal' node ⚛  \e[0m\n"
+      system("sbt journal/docker:stage")
+    end
+    
+    if CLEAN_COMMANDS.include? COMMAND
+      print "\e[1m\e[41;30m  ☢ Using sbt to clean up code & docker staging for 'shared-journal' node ☢  \e[0m\n"
+      system("sbt journal/docker:stage")
+    end
 
 
     c.vm.hostname = "shared-journal"
@@ -83,8 +109,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "trader-db-node" do |c|
-    print "\e[1m\e[43;30m  ☢ Using sbt to stage Docker for 'shared-journal' node ☢  \e[0m\n"
-    system("sbt traderDB/docker:stage")
+    if STAGE_COMMANDS.include? COMMAND
+      print "\e[1m\e[42;30m  ⚛ Using sbt to stage Docker for 'trader-db' node ⚛  \e[0m\n"
+      system("sbt traderDB/docker:stage")
+    end
+    
+    if CLEAN_COMMANDS.include? COMMAND
+      print "\e[1m\e[41;30m  ☢ Using sbt to clean up code & docker staging for 'trader-db' node ☢  \e[0m\n"
+      system("sbt traderDB/docker:stage")
+    end
 
     c.vm.hostname = "trader-db"
     c.vm.provider "docker" do |docker|
@@ -107,6 +140,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       docker.vagrant_vagrantfile = "Vagrantfile.host"
       docker.link("frontend:seed")
       docker.ports = ["2222:2242"]
+      docker.volumes = ["/var/run/docker.sock"]
     end
   end
 
