@@ -1,0 +1,16 @@
+# Some helpful aliases/commands for working with docker
+function docker-env () {
+  if [[ -n "${1+x}" ]]; then
+    echo "Setting up Docker env for '$1'..."
+    eval "$(docker-machine env $1)"
+  else
+    echo "Setting up Docker env for 'default'..."
+    eval "$(docker-machine env default)"
+  fi
+}
+
+dockip() { docker inspect --format '{{ .NetworkSettings.IPAddress }}' $1; };
+
+echo "☢ Welcome to your Docker Host ☢\n"
+
+

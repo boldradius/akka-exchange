@@ -26,7 +26,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   #config.vm.box = "ubuntu/trusty64"
   #BOX_NAME = 
-  BOX_NAME = "akka-exchange"
   config.vm.box = "phusion/ubuntu-14.04-amd64"
   config.vm.provision "docker"
   # The following line terminates all ssh connections. Therefore
@@ -36,6 +35,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # initialising VirtualBox and has to be run a second time)
   config.vm.provision "shell", inline:
      "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
+
+  # Setup the docker-ssh tool on the docker host
+  # I do a lot of direct debugging on the docker host (vagrant's box)
+  # so this is helpful for the debugger node, at least.
+  config.vm.provision "shell", inline: 
+    %q(
+        curl --fail -L -O https://github.com/phusion/baseimage-docker/archive/master.tar.gz && \
+          tar xzf master.tar.gz && \
+          sudo ./baseimage-docker-master/install-tools.sh
+    )
+
+  config.vm.provision "file", 
+            source: "./src/main/resources/docker-debug/bash_aliases",
+            destination: ".bash_aliases"
+
 
   # Disable synced folders (prevents an NFS error on "vagrant up")
   config.vm.synced_folder ".", "/vagrant", disabled: true

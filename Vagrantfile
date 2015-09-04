@@ -9,6 +9,7 @@
 #   
 #
 
+BOX_NAME = "akka-exchange"
 #ENV['BOX_NAME'] || "default"
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
@@ -49,7 +50,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # todo - add optional second nodes of each?
   config.vm.define "frontend-node" do |c|
-    `sbt frontend/docker:stage`
+    print "\e[1m\e[43;30m  ☢ Using sbt to stage Docker for 'frontend' node ☢  \e[0m\n"
+    system("sbt frontend/docker:stage")
 
     c.vm.hostname = "frontend"
     c.vm.provider "docker" do |docker|
@@ -59,11 +61,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
       docker.ports = ["8080:8080"]
+      c.vm.synced_folder ".", "/vagrant", disabled: true
     end
   end
 
   config.vm.define "shared-journal-node" do |c|
-    `sbt journal/docker:stage`
+    print "\e[1m\e[43;30m  ☢ Using sbt to stage Docker for 'shared-journal' node ☢  \e[0m\n"
+    system("sbt journal/docker:stage")
+
 
     c.vm.hostname = "shared-journal"
     c.vm.provider "docker" do |docker|
@@ -78,7 +83,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define "trader-db-node" do |c|
-    `sbt traderDB/docker:stage`
+    print "\e[1m\e[43;30m  ☢ Using sbt to stage Docker for 'shared-journal' node ☢  \e[0m\n"
+    system("sbt traderDB/docker:stage")
 
     c.vm.hostname = "trader-db"
     c.vm.provider "docker" do |docker|
@@ -90,6 +96,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       docker.link("frontend:seed")
     end
   end
+
+  config.vm.define "debug-node" do |c|
+    c.vm.hostname = "debugger"
+    c.vm.provider "docker" do |docker|
+      docker.build_dir = "./src/main/resources/docker-debug"
+      docker.name = "debugger"
+      # Because our images boot up a app directly, don't want it trying to connect SSH etc
+      docker.has_ssh = false
+      docker.vagrant_vagrantfile = "Vagrantfile.host"
+      docker.link("frontend:seed")
+      docker.ports = ["2222:2242"]
+    end
+  end
+
 
   #config.vm.define "trade-engine-node" do |c|
     #c.vm.provision "docker" do |docker|

@@ -23,6 +23,7 @@ import scala.collection.breakOut
 
 abstract class ExchangeNodeBootable extends App {
   import net.ceedubs.ficus.Ficus._
+
   fetchSystemProperties(args)
 
 
@@ -30,7 +31,10 @@ abstract class ExchangeNodeBootable extends App {
 
   implicit val config = system.settings.config
 
+
   val cluster = Cluster(system)
+
+  //val = config.as[String]("akka-exchange.cluster.container.address")
 
   println("[Starting up with Seed Nodes]: " +
     config.getStringList("akka.cluster.seed-nodes"))

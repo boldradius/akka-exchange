@@ -19,7 +19,6 @@ lazy val commonSettings = Seq(
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
     "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-
     "ch.qos.logback" % "logback-classic" % logbackVersion,
     "io.kamon" % "sigar-loader" % sigarLoaderVersion,
     // for the saner groovy config of Logback
@@ -77,6 +76,7 @@ lazy val journal = project.
 
 
 addCommandAlias("package-journal", "journal/universal:packageBin")
+
 addCommandAlias("dockerize-journal", "journal/docker:publishLocal")
 
 // Doesn't work right due to JNI issues; you need to generate a package and run from there :(
@@ -152,7 +152,6 @@ lazy val traderDB = (project in file("trader-db")).
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
     )
-    
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)

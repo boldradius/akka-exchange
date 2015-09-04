@@ -8,6 +8,7 @@ This document outlines the design and usage of the project.
 
   * [System Design](#system-design)
     - [Architecture Overview](#architecture)
+  * [Vagrant / Docker Setup](#vagrant-and-docker-setup)
 
 ## System Design
 
@@ -77,4 +78,18 @@ Network based Trade System (TCP/IP with custom Binary Protocol) for emulating no
 
 This utilizes [Akka I/O](http://doc.akka.io/docs/akka/2.4.0-RC1/scala/io.html) to handle the TCP/IP and serializing/deserializing of the messages. Interfaces to the system through the same Actor messaging as the REST API.
 
+## Vagrant and Docker Setup
 
+In addition to being a demonstration of Akka Clustering, this project serves as a Docker demonstration. For now, the Docker configuration has been focused on running within a Vagrant host, but each module/node of the project has a full Docker config that can standalone.
+
+### Setting Up Vagrant
+
+This Vagrant is setup to initialize a VirtualBox Linux host running Docker, in which each container is setup. The configuration for the VirtualBox host is in `Vagrantfile.host`; you could easily change that to spin up say, an AWS Server instead of VirtualBox. The actual Docker hosts are all configured in the primary `Vagrantfile`.
+
+Best behavior of the Vagrant setup will require some Vagrant plugins:
+
+```bash
+vagrant plugin install vagrant-timezone # Set a timezone other than UTC on the host, for simplifying log reading
+```
+
+Running `vagrant up --no-parallel` should attempt to bring up all of the configured nodes.
