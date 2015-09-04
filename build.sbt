@@ -68,7 +68,8 @@ lazy val journal = project.
       "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
       "org.iq80.leveldb" % "leveldb" % "0.7",
       "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
-    )
+    ),
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -90,6 +91,7 @@ lazy val frontend = project.
       "com.typesafe.akka" % "akka-http-core-experimental_2.11" % akkaHttpVersion,
       "com.typesafe.akka" % "akka-http-experimental_2.11" % akkaHttpVersion
     ),
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh"),
     // todo - change me once we figure out port(s)?
     dockerExposedPorts ++= Seq(8080)
   ).
@@ -105,7 +107,9 @@ addCommandAlias("frontend2", "frontend/runMain com.boldradius.akka_exchange.fron
 lazy val tradeEngine = project.in(file("trade-engine")).
   settings(commonSettings: _*).
   settings(
-    name := "akka-exchange-trade-engine"  ).
+    name := "akka-exchange-trade-engine",
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
+  ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
@@ -120,7 +124,8 @@ lazy val ticker = project.
     name := "akka-exchange-ticker",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
-    )  
+    ),  
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -136,7 +141,8 @@ lazy val securitiesDB = (project in file("securities-db")).
     name := "akka-exchange-securities-db",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion
-    )  
+    ),
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -151,7 +157,8 @@ lazy val traderDB = (project in file("trader-db")).
     name := "akka-exchange-trader-db",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
-    )
+    ),
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -167,7 +174,8 @@ lazy val networkTrade = (project in file("network-trade")).
     name := "akka-exchange-network-trade",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" % "akka-stream-experimental_2.11" % akkaStreamVersion
-    )
+    ),
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)

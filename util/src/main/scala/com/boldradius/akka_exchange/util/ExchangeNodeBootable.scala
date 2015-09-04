@@ -39,6 +39,9 @@ abstract class ExchangeNodeBootable extends App {
   println("[Starting up with Seed Nodes]: " +
     config.getStringList("akka.cluster.seed-nodes"))
 
+  println("[Environment Variables]: ")
+  sys.env.foreach { case (k, v) => println(s"\t Key: $k Value: $v") }
+
 
   /**
    * Sets us up so any startup args are merged as system properties

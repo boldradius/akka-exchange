@@ -11,6 +11,6 @@ function docker-env () {
 
 dockip() { docker inspect --format '{{ .NetworkSettings.IPAddress }}' $1; };
 
-echo "☢ Welcome to your Docker Host ☢\n"
+echo "⚠︎ Welcome to your Docker Host ⚠︎"
 
 

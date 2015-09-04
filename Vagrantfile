@@ -27,13 +27,33 @@ Vagrant.require_version ">= 1.6.0"
 AKKA_EXCHANGE_BASE_ARTIFACT = "akka-exchange"
 
 COMMAND = ARGV[0]
+TARGET_CONTAINER = ARGV[1]
 
 # Commands we will run SBT Staging on
-STAGE_COMMANDS = ['up', 'provision']
+STAGE_COMMANDS = ['up', 'provision', 'reload']
 # Commands we'll clean up SBT on
 CLEAN_COMMANDS = ['destroy']
+# Commands for which we check against if a target was specified to pause after container startup
+CONTAINER_PAUSE_COMMANDS = STAGE_COMMANDS 
 
-#puts "Running Vagrant Command '#{COMMAND}'\n"
+
+define_method("post_container_pause") do |container|
+  if HAS_TARGET_CONTAINER
+    puts "\e[1m\e[42;30m  ⚛ Sleeping 30 seconds to let container '#{container}' initialize... ⚛  \e[0m\n"
+    sleep(30.seconds)
+  end
+end
+
+HAS_ARG = TARGET_CONTAINER.nil? || (!TARGET_CONTAINER.nil? && TARGET_CONTAINER.empty?)
+HAS_TARGET_CONTAINER = !HAS_ARG && !TARGET_CONTAINER.start_with?("-")
+
+# Some debug
+puts "Running Vagrant Command '#{COMMAND}'\n"
+if HAS_TARGET_CONTAINER
+  puts "Target Container: #{TARGET_CONTAINER}\n"
+else 
+  puts "No target container.\n"
+end
 
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
@@ -61,7 +81,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 
   # todo - add optional second nodes of each?
-  config.vm.define "frontend-node" do |c|
+  config.vm.define "frontend-node", primary: true do |c|
     if STAGE_COMMANDS.include? COMMAND
       print "\e[1m\e[42;30m  ⚛ Using sbt to stage Docker for 'frontend' node ⚛  \e[0m\n"
       system("sbt frontend/docker:stage")
@@ -82,6 +102,23 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       docker.ports = ["8080:8080"]
       c.vm.synced_folder ".", "/vagrant", disabled: true
     end
+
+    post_container_pause(c.vm.hostname)
+  end
+
+  config.vm.define "debug-node" do |c|
+    c.vm.hostname = "debugger"
+    c.vm.provider "docker" do |docker|
+      docker.build_dir = "./src/main/resources/docker-debug"
+      docker.name = "debugger"
+      # Because our images boot up a app directly, don't want it trying to connect SSH etc
+      docker.has_ssh = false
+      docker.vagrant_vagrantfile = "Vagrantfile.host"
+      docker.link("frontend:seed")
+      docker.ports = ["2222:2242"]
+    end
+
+    post_container_pause(c.vm.hostname)
   end
 
   config.vm.define "shared-journal-node" do |c|
@@ -104,8 +141,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
       docker.link("frontend:seed")
-      docker.ports = ["2551:2551"]
+      #docker.ports = ["2551:2551"]
     end
+
+    post_container_pause(c.vm.hostname)
   end
 
   config.vm.define "trader-db-node" do |c|
@@ -128,59 +167,107 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       docker.vagrant_vagrantfile = "Vagrantfile.host"
       docker.link("frontend:seed")
     end
+
+    post_container_pause(c.vm.hostname)
   end
 
-  config.vm.define "debug-node" do |c|
-    c.vm.hostname = "debugger"
+
+  config.vm.define "trade-engine-node" do |c|
+    if STAGE_COMMANDS.include? COMMAND
+      print "\e[1m\e[42;30m  ⚛ Using sbt to stage Docker for 'trade-engine' node ⚛  \e[0m\n"
+      system("sbt tradeEngine/docker:stage")
+    end
+    
+    if CLEAN_COMMANDS.include? COMMAND
+      print "\e[1m\e[41;30m  ☢ Using sbt to clean up code & docker staging for 'trade-engine' node ☢  \e[0m\n"
+      system("sbt tradeEngine/docker:stage")
+    end
+
+    c.vm.hostname = "trade-engine"
     c.vm.provider "docker" do |docker|
-      docker.build_dir = "./src/main/resources/docker-debug"
-      docker.name = "debugger"
+      docker.build_dir = "./trade-engine/target/docker/stage"
+      docker.name = "trade-engine"
       # Because our images boot up a app directly, don't want it trying to connect SSH etc
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
       docker.link("frontend:seed")
-      docker.ports = ["2222:2242"]
-      docker.volumes = ["/var/run/docker.sock"]
     end
+
+    post_container_pause(c.vm.hostname)
   end
 
 
-  #config.vm.define "trade-engine-node" do |c|
-    #c.vm.provision "docker" do |docker|
-      #docker.run "trade-engine",
-            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-trade-engine",
-            #args: "-h trade-engine"
-    #end
-    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
-  #end
+  config.vm.define "ticker-node" do |c|
+    if STAGE_COMMANDS.include? COMMAND
+      print "\e[1m\e[42;30m  ⚛ Using sbt to stage Docker for 'ticker' node ⚛  \e[0m\n"
+      system("sbt ticker/docker:stage")
+    end
+    
+    if CLEAN_COMMANDS.include? COMMAND
+      print "\e[1m\e[41;30m  ☢ Using sbt to clean up code & docker staging for 'ticker' node ☢  \e[0m\n"
+      system("sbt ticker/docker:stage")
+    end
 
-  #config.vm.define "ticker-node" do |c|
-    #c.vm.provision "docker" do |docker|
-      #docker.run "ticker",
-            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-ticker",
-            #args: "-h ticker"
-    #end
-    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
-  #end
+    c.vm.hostname = "ticker"
+    c.vm.provider "docker" do |docker|
+      docker.build_dir = "./ticker/target/docker/stage"
+      docker.name = "ticker"
+      # Because our images boot up a app directly, don't want it trying to connect SSH etc
+      docker.has_ssh = false
+      docker.vagrant_vagrantfile = "Vagrantfile.host"
+      docker.link("frontend:seed")
+    end
 
+    post_container_pause(c.vm.hostname)
+  end
 
-  #config.vm.define "securities-db-node" do |c|
-    #c.vm.provision "docker" do |docker|
-      #docker.run "securities-db",
-            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-securities-db",
-            #args: "-h securities-db"
-    #end
-    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
-  #end
+  config.vm.define "network-trade-node" do |c|
+    if STAGE_COMMANDS.include? COMMAND
+      print "\e[1m\e[42;30m  ⚛ Using sbt to stage Docker for 'network-trade' node ⚛  \e[0m\n"
+      system("sbt networkTrade/docker:stage")
+    end
+    
+    if CLEAN_COMMANDS.include? COMMAND
+      print "\e[1m\e[41;30m  ☢ Using sbt to clean up code & docker staging for 'network-trade' node ☢  \e[0m\n"
+      system("sbt networkTrade/docker:stage")
+    end
 
-  #config.vm.define "network-trade-node" do |c|
-    #c.vm.provision "docker" do |docker|
-      #docker.run "network-trade",
-            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-network-trade",
-            #args: "-h network-trade"
-    #end
-    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
-  #end
+    c.vm.hostname = "network-trade"
+    c.vm.provider "docker" do |docker|
+      docker.build_dir = "./network-trade/target/docker/stage"
+      docker.name = "network-trade"
+      # Because our images boot up a app directly, don't want it trying to connect SSH etc
+      docker.has_ssh = false
+      docker.vagrant_vagrantfile = "Vagrantfile.host"
+      docker.link("frontend:seed")
+    end
+
+    post_container_pause(c.vm.hostname)
+  end
+
+  config.vm.define "securities-db-node" do |c|
+    if STAGE_COMMANDS.include? COMMAND
+      print "\e[1m\e[42;30m  ⚛ Using sbt to stage Docker for 'securities-db' node ⚛  \e[0m\n"
+      system("sbt securitiesDB/docker:stage")
+    end
+    
+    if CLEAN_COMMANDS.include? COMMAND
+      print "\e[1m\e[41;30m  ☢ Using sbt to clean up code & docker staging for 'securities-db' node ☢  \e[0m\n"
+      system("sbt securitiesDB/docker:stage")
+    end
+
+    c.vm.hostname = "securities-db"
+    c.vm.provider "docker" do |docker|
+      docker.build_dir = "./securities-db/target/docker/stage"
+      docker.name = "securities-db"
+      # Because our images boot up a app directly, don't want it trying to connect SSH etc
+      docker.has_ssh = false
+      docker.vagrant_vagrantfile = "Vagrantfile.host"
+      docker.link("frontend:seed")
+    end
+
+    post_container_pause(c.vm.hostname)
+  end
 
 
 end

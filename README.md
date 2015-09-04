@@ -92,4 +92,4 @@ Best behavior of the Vagrant setup will require some Vagrant plugins:
 vagrant plugin install vagrant-timezone # Set a timezone other than UTC on the host, for simplifying log reading
 ```
 
-Running `vagrant up --no-parallel` should attempt to bring up all of the configured nodes.
+Parallel execution of vagrant (The default) causes some fun race conditions due to container linking. ` VAGRANT_NO_PARALLEL=yes vagrant up` seems to be the best way to bring up all of the configured nodes.  

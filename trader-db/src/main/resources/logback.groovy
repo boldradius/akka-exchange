@@ -15,4 +15,4 @@ appender("STDOUT", ConsoleAppender) {
 
 // not needed for the docker setup for now
 //root(DEBUG, ["FILE"])
-root(DEBUG, ["STDOUT"])
+root(INFO, ["STDOUT"])
