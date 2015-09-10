@@ -33,12 +33,12 @@ CLEAN_COMMANDS = ['destroy']
 CONTAINER_PAUSE_COMMANDS = STAGE_COMMANDS 
 
 
-define_method("post_container_pause") do |container|
-  if HAS_TARGET_CONTAINER
-    puts "\e[1m\e[42;30m  ⚛ Sleeping 30 seconds to let container '#{container}' initialize... ⚛  \e[0m\n"
-    sleep(30.seconds)
-  end
-end
+#define_method("post_container_pause") do |container|
+  #if HAS_TARGET_CONTAINER
+    #puts "\e[1m\e[42;30m  ⚛ Sleeping 30 seconds to let container '#{container}' initialize... ⚛  \e[0m\n"
+    #sleep(30)
+  #end
+#end
 
 HAS_ARG = TARGET_CONTAINER.nil? || (!TARGET_CONTAINER.nil? && TARGET_CONTAINER.empty?)
 HAS_TARGET_CONTAINER = !HAS_ARG && !TARGET_CONTAINER.start_with?("-")
@@ -73,6 +73,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ##docker.vagrant_machine = AKKA_EXCHANGE_BASE_ARTIFACT
     ## May not be needed, as we can provision with docker-machine
     docker.vagrant_vagrantfile = "Vagrantfile.host"
+			docker.vagrant_machine = "akka-exchange"
   end
 
 
@@ -95,11 +96,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Because our images boot up a app directly, don't want it trying to connect SSH etc
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
+			docker.vagrant_machine = "akka-exchange"
       docker.ports = ["8080:8080"]
       c.vm.synced_folder ".", "/vagrant", disabled: true
     end
 
-    post_container_pause(c.vm.hostname)
   end
 
   config.vm.define "debug-node" do |c|
@@ -110,11 +111,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Because our images boot up a app directly, don't want it trying to connect SSH etc
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
+			docker.vagrant_machine = "akka-exchange"
       docker.link("frontend:seed")
       docker.ports = ["2222:2242"]
     end
 
-    post_container_pause(c.vm.hostname)
   end
 
   config.vm.define "shared-journal-node" do |c|
@@ -136,11 +137,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Because our images boot up a app directly, don't want it trying to connect SSH etc
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
+			docker.vagrant_machine = "akka-exchange"
       docker.link("frontend:seed")
       #docker.ports = ["2551:2551"]
     end
 
-    post_container_pause(c.vm.hostname)
   end
 
   config.vm.define "trader-db-node" do |c|
@@ -161,10 +162,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Because our images boot up a app directly, don't want it trying to connect SSH etc
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
+			docker.vagrant_machine = "akka-exchange"
       docker.link("frontend:seed")
     end
 
-    post_container_pause(c.vm.hostname)
   end
 
 
@@ -186,10 +187,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Because our images boot up a app directly, don't want it trying to connect SSH etc
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
+			docker.vagrant_machine = "akka-exchange"
       docker.link("frontend:seed")
     end
 
-    post_container_pause(c.vm.hostname)
   end
 
 
@@ -211,10 +212,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Because our images boot up a app directly, don't want it trying to connect SSH etc
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
+			docker.vagrant_machine = "akka-exchange"
       docker.link("frontend:seed")
     end
 
-    post_container_pause(c.vm.hostname)
   end
 
   config.vm.define "network-trade-node" do |c|
@@ -235,10 +236,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Because our images boot up a app directly, don't want it trying to connect SSH etc
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
+			docker.vagrant_machine = "akka-exchange"
       docker.link("frontend:seed")
     end
 
-    post_container_pause(c.vm.hostname)
   end
 
   config.vm.define "securities-db-node" do |c|
@@ -259,10 +260,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       # Because our images boot up a app directly, don't want it trying to connect SSH etc
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
+			docker.vagrant_machine = "akka-exchange"
       docker.link("frontend:seed")
     end
 
-    post_container_pause(c.vm.hostname)
   end
 
 
