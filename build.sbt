@@ -7,6 +7,7 @@ val akkaHttpVersion    = "1.0"
 val sigarLoaderVersion = "1.6.6-rev002"
 val logbackVersion     = "1.1.3"
 val projectVersion     = "0.1-SNAPSHOT"
+val squantsVersion     = "0.5.3"
 
 
 lazy val commonSettings = Seq( 
@@ -21,6 +22,7 @@ lazy val commonSettings = Seq(
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
     "io.kamon" % "sigar-loader" % sigarLoaderVersion,
+    "com.squants" %% "squants" % squantsVersion,
     // for the saner groovy config of Logback
     "org.codehaus.groovy" % "groovy" % "2.4.3",
     "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
