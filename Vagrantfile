@@ -112,8 +112,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       docker.has_ssh = false
       docker.vagrant_vagrantfile = "Vagrantfile.host"
 			docker.vagrant_machine = "akka-exchange"
-      docker.link("frontend:seed")
+      #docker.link("frontend:seed")
       docker.ports = ["2222:2242"]
+      docker.volumes = ["/var/run/docker.sock:/var/run/docker.sock:rw"]
     end
 
   end

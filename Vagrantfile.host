@@ -27,7 +27,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
 
     #config.vm.box = "ubuntu/trusty64"
     #BOX_NAME = 
-    config.vm.box = "phusion/ubuntu-14.04-amd64"
+    #config.vm.box = "phusion/ubuntu-14.04-amd64"
+    # TODO - reset to phusion. using ubuntu's image only temporarily
+    # for some debugging
+    config.vm.box = "ubuntu/wily64"
     config.vm.provision "docker"
     # The following line terminates all ssh connections. Therefore
     # Vagrant will be forced to reconnect.
