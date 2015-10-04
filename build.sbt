@@ -8,7 +8,9 @@ val sigarLoaderVersion = "1.6.6-rev002"
 val logbackVersion     = "1.1.3"
 val projectVersion     = "0.1-SNAPSHOT"
 val squantsVersion     = "0.5.3"
-
+val groovyVersion      = "2.4.3"
+val scalatestVersion   = "2.2.4"
+val ficusVersion       = "1.1.2"
 
 lazy val commonSettings = Seq( 
   organization := "com.boldradius",
@@ -24,9 +26,9 @@ lazy val commonSettings = Seq(
     "io.kamon" % "sigar-loader" % sigarLoaderVersion,
     "com.squants" %% "squants" % squantsVersion,
     // for the saner groovy config of Logback
-    "org.codehaus.groovy" % "groovy" % "2.4.3",
-    "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
-    "net.ceedubs" %% "ficus" % "1.1.2"
+    "org.codehaus.groovy" % "groovy" % groovyVersion,
+    "org.scalatest" %% "scalatest" % scalatestVersion % "test",
+    "net.ceedubs" %% "ficus" % ficusVersion
   ),
   fork in (Test, run) := true,
   // Runs OpenJDK 8. Official docker image, should be safe to use.
@@ -183,4 +185,3 @@ lazy val networkTrade = (project in file("network-trade")).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
 addCommandAlias("network-trade", "networkTrade/runMain com.boldradius.akka_exchange.trade.network.NetworkTradeNodeApp -Dakka.remote.netty.tcp.port=2556")
-
