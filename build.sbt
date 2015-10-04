@@ -8,7 +8,7 @@ val sigarLoaderVersion = "1.6.6-rev002"
 val logbackVersion     = "1.1.3"
 val projectVersion     = "0.1-SNAPSHOT"
 val squantsVersion     = "0.5.3"
-val groovyVersion      = "2.4.3"
+val groovyVersion      = "2.4.5"
 val scalatestVersion   = "2.2.4"
 val ficusVersion       = "1.1.2"
 
