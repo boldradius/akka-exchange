@@ -1,6 +1,6 @@
 
 name := "akka-exchange"
- 
+
 val akkaVersion        = "2.4.0-RC1"
 val akkaStreamVersion  = "1.0"
 val akkaHttpVersion    = "1.0"
@@ -8,9 +8,10 @@ val sigarLoaderVersion = "1.6.6-rev002"
 val logbackVersion     = "1.1.3"
 val projectVersion     = "0.1-SNAPSHOT"
 val squantsVersion     = "0.5.3"
+val nScalaTimeVersion  = "2.2.0"
 
 
-lazy val commonSettings = Seq( 
+lazy val commonSettings = Seq(
   organization := "com.boldradius",
   version := projectVersion,
   scalaVersion := "2.11.7",
@@ -26,7 +27,8 @@ lazy val commonSettings = Seq(
     // for the saner groovy config of Logback
     "org.codehaus.groovy" % "groovy" % "2.4.3",
     "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
-    "net.ceedubs" %% "ficus" % "1.1.2"
+    "net.ceedubs" %% "ficus" % "1.1.2",
+    "com.github.nscala-time" %% "nscala-time" % nScalaTimeVersion
   ),
   fork in (Test, run) := true,
   // Runs OpenJDK 8. Official docker image, should be safe to use.
