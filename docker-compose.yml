@@ -16,6 +16,7 @@ shared-journal:
   extends:
     file: docker-common.yml
     service: akka-cluster-node
+  build: ./journal/target/docker/stage
   links:
     - frontend-01
     - frontend-02
