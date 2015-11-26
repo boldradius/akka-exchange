@@ -1,0 +1,47 @@
+frontend-01:
+  extends:
+    file: docker-common.yml
+    service: frontend-node
+
+frontend-02:
+  extends:
+    file: docker-common.yml
+    service: frontend-node
+
+shared-journal:
+  extends:
+    file: docker-common.yml
+    service: akka-cluster-node
+  links:
+    - frontend-01
+    - frontend-02
+
+trader-db-01:
+  extends:
+    file: docker-common.yml
+    service: trader-db-node
+  links:
+    - frontend-01
+    - frontend-02
+    - shared-journal
+
+trader-engine-01:
+  extends:
+    file: docker-common.yml
+    service: trader-engine-node
+  links:
+    - frontend-01
+    - frontend-02
+    - shared-journal
+
+ticker-01:
+  extends:
+    file: docker-common.yml
+    service: ticker-node
+  links:
+    - frontend-01
+    - frontend-02
+    - shared-journal
+
+
+

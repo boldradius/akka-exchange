@@ -27,24 +27,18 @@ lazy val commonSettings = Seq(
     "io.kamon" % "sigar-loader" % sigarLoaderVersion,
     "com.squants" %% "squants" % squantsVersion,
     // for the saner groovy config of Logback
-    "com.github.nscala-time" %% "nscala-time" % nScalaTimeVersion
+    "com.github.nscala-time" %% "nscala-time" % nScalaTimeVersion,
     "org.codehaus.groovy" % "groovy" % groovyVersion,
     "org.scalatest" %% "scalatest" % scalatestVersion % "test",
     "net.ceedubs" %% "ficus" % ficusVersion
   ),
-  fork in (Test, run) := true,
+  fork in (Test, run) := true
   // Runs OpenJDK 8. Official docker image, should be safe to use.
-  dockerBaseImage := "java:8-jdk",
-  dockerUpdateLatest := true,
-  dockerExposedVolumes := Seq("/opt/docker/logs"),
   // todo: probably change me later when we have a non-snap version?
-  version in Docker := "latest",
-  // todo - change me once we figure out port(s)?
-  dockerExposedPorts := Seq(2551)
 )
 
 lazy val root = (project in file(".")).
-  aggregate(util, journal, frontend, 
+  aggregate(util, journal, frontend,
             tradeEngine, ticker, securitiesDB,
             traderDB, networkTrade).
   settings(commonSettings: _*).
