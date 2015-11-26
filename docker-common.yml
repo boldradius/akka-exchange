@@ -16,8 +16,6 @@ frontend-node:
   environment:
     CLUSTER_ROLE: frontend
     IS_SEED: 1
-  ports:
-    - "8080:8080"
   labels:
     com.boldradius.description: "Frontend / Seed Node"
 

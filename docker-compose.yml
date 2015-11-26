@@ -2,11 +2,15 @@ frontend-01:
   extends:
     file: docker-common.yml
     service: frontend-node
+  #ports:
+  #  - "8082:8080"
 
 frontend-02:
   extends:
     file: docker-common.yml
     service: frontend-node
+  #ports:
+  #  - "8082:8080"
 
 shared-journal:
   extends:

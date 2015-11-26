@@ -32,9 +32,10 @@ lazy val commonSettings = Seq(
     "org.scalatest" %% "scalatest" % scalatestVersion % "test",
     "net.ceedubs" %% "ficus" % ficusVersion
   ),
-  fork in (Test, run) := true
+  fork in (Test, run) := true,
   // Runs OpenJDK 8. Official docker image, should be safe to use.
   // todo: probably change me later when we have a non-snap version?
+  dockerBaseImage := "java:8-jdk"
 )
 
 lazy val root = (project in file(".")).

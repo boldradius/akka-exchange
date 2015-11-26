@@ -52,14 +52,14 @@ puts "Running Vagrant Command '#{COMMAND}'\n"
 #end
 
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
 
   # I find it terribly annoying to read logs on UTC
   # If you want this to work, install
   #     vagrant plugin install vagrant-timezone
   #
   if Vagrant.has_plugin?("vagrant-timezone")
-    config.timezone.value = "America/Los_Angeles"
+    c.timezone.value = "America/Los_Angeles"
   end
 
   # Use docker-compose instead of the usual
@@ -71,16 +71,61 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 
 
-  config.ssh.insert_key = false
-
-  # Disable synced folders for the Docker container
-  # (prevents an NFS error on "vagrant up")
-  config.vm.synced_folder ".", "/vagrant", disabled: true
+  c.ssh.insert_key = false
 
 
-  config.vm.provider "docker" do |docker|
-      docker.vagrant_vagrantfile = "Vagrantfile.host"
-		  docker.vagrant_machine = "akka-exchange"
+  c.vm.define "akka-exchange" do |config|
+    # Friendly name for host
+    config.vm.hostname = "akka-exchange"
+
+
+    # Skip checks for updated vagrant box since it'll be our own
+    config.vm.box_check_update = false
+
+    # Use Vagrant's default insecure key
+    #config.ssh.insert_key = false
+
+
+    config.vm.box = "phusion/ubuntu-14.04-amd64"
+    # The following line terminates all ssh connections. Therefore
+    # Vagrant will be forced to reconnect.
+    # That's a workaround to have the docker command in the PATH
+    # (This is necessary to provision properly; else Vagrant crashes after
+    # initialising VirtualBox and has to be run a second time)
+    config.vm.provision "shell", inline:
+       "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
+
+    # Setup the docker-ssh tool on the docker host
+    # I do a lot of direct debugging on the docker host (vagrant's box)
+    # so this is helpful for the debugger node, at least.
+    config.vm.provision "shell", inline:
+      %q(
+          curl --fail -L -O https://github.com/phusion/baseimage-docker/archive/master.tar.gz && \
+            tar xzf master.tar.gz && \
+            sudo ./baseimage-docker-master/install-tools.sh
+      )
+
+    config.vm.provision "file",
+              source: "./src/main/resources/docker-debug/bash_aliases",
+              destination: ".bash_aliases"
+
+    config.vm.provision :docker
+    config.vm.provision :docker_compose, yml: "/vagrant/docker-compose.yml", rebuild: true, run: "always"
+
+
+    config.vm.provider "virtualbox" do |vbox|
+      vbox.name = "akka-exchange"
+      vbox.cpus = 1
+      # Memory good, given how many nodes we start
+      vbox.memory = 8192
+    end
+
+    # Exposes port 8080 on localhost to the VirtualBox docker host,
+    # which forwards to the frontend node
+    # frontend-01
+    #config.vm.network :forwarded_port, guest: 8080, host: 8082
+    # frontend-02
+    #config.vm.network :forwarded_port, guest: 8080, host: 8082
   end
 
   if STAGE_COMMANDS.include? COMMAND
@@ -93,7 +138,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     system("sbt clean")
   end
 
-  config.vm.provision :docker
-  config.vm.provision :docker_compose, yml: "src/main/resources/docker-compose.yml", rebuild: true, run: "always"
 
 end
