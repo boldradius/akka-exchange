@@ -12,58 +12,63 @@ VAGRANTFILE_API_VERSION = "2"
 #Check if you have the good Vagrant version to use docker provider...
 Vagrant.require_version ">= 1.6.0"
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
   
-  # Friendly name for host
-  config.vm.hostname = "akka-exchange"
-  
+  c.vm.define "akka-exchange" do |config| 
+    # Friendly name for host
+    config.vm.hostname = "akka-exchange"
+    
 
-  # Skip checks for updated vagrant box since it'll be our own
-  config.vm.box_check_update = false
-  
-  # Use Vagrant's default insecure key
-  #config.ssh.insert_key = false
+    # Skip checks for updated vagrant box since it'll be our own
+    config.vm.box_check_update = false
+    
+    # Use Vagrant's default insecure key
+    #config.ssh.insert_key = false
 
-  #config.vm.box = "ubuntu/trusty64"
-  #BOX_NAME = 
-  config.vm.box = "phusion/ubuntu-14.04-amd64"
-  config.vm.provision "docker"
-  # The following line terminates all ssh connections. Therefore
-  # Vagrant will be forced to reconnect.
-  # That's a workaround to have the docker command in the PATH
-  # (This is necessary to provision properly; else Vagrant crashes after 
-  # initialising VirtualBox and has to be run a second time)
-  config.vm.provision "shell", inline:
-     "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
+    #config.vm.box = "ubuntu/trusty64"
+    #BOX_NAME = 
+    #config.vm.box = "phusion/ubuntu-14.04-amd64"
+    # TODO - reset to phusion. using ubuntu's image only temporarily
+    # for some debugging
+    config.vm.box = "ubuntu/wily64"
+    config.vm.provision "docker"
+    # The following line terminates all ssh connections. Therefore
+    # Vagrant will be forced to reconnect.
+    # That's a workaround to have the docker command in the PATH
+    # (This is necessary to provision properly; else Vagrant crashes after 
+    # initialising VirtualBox and has to be run a second time)
+    config.vm.provision "shell", inline:
+       "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
 
-  # Setup the docker-ssh tool on the docker host
-  # I do a lot of direct debugging on the docker host (vagrant's box)
-  # so this is helpful for the debugger node, at least.
-  config.vm.provision "shell", inline: 
-    %q(
-        curl --fail -L -O https://github.com/phusion/baseimage-docker/archive/master.tar.gz && \
-          tar xzf master.tar.gz && \
-          sudo ./baseimage-docker-master/install-tools.sh
-    )
+    # Setup the docker-ssh tool on the docker host
+    # I do a lot of direct debugging on the docker host (vagrant's box)
+    # so this is helpful for the debugger node, at least.
+    config.vm.provision "shell", inline: 
+      %q(
+          curl --fail -L -O https://github.com/phusion/baseimage-docker/archive/master.tar.gz && \
+            tar xzf master.tar.gz && \
+            sudo ./baseimage-docker-master/install-tools.sh
+      )
 
-  config.vm.provision "file", 
-            source: "./src/main/resources/docker-debug/bash_aliases",
-            destination: ".bash_aliases"
+    config.vm.provision "file", 
+              source: "./src/main/resources/docker-debug/bash_aliases",
+              destination: ".bash_aliases"
 
 
-  # Disable synced folders (prevents an NFS error on "vagrant up")
-  config.vm.synced_folder ".", "/vagrant", disabled: true
+    # Disable synced folders (prevents an NFS error on "vagrant up")
+    config.vm.synced_folder ".", "/vagrant", disabled: true
 
-  config.vm.provider "virtualbox" do |vbox|
-    vbox.name = "akka-exchange"
-    vbox.cpus = 1
-    # Memory good, given how many nodes we start
-    vbox.memory = 8192
+    config.vm.provider "virtualbox" do |vbox|
+      vbox.name = "akka-exchange"
+      vbox.cpus = 1
+      # Memory good, given how many nodes we start
+      vbox.memory = 8192
+    end
+
+    # Exposes port 8080 on localhost to the VirtualBox docker host, 
+    # which forwards to the frontend node
+    config.vm.network :forwarded_port, guest: 8080, host: 8080
   end
-
-  # Exposes port 8080 on localhost to the VirtualBox docker host, 
-  # which forwards to the frontend node
-  config.vm.network :forwarded_port, guest: 8080, host: 8080
   
 end
 

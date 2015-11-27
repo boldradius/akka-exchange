@@ -38,8 +38,9 @@ The system utilizes Akka clustering, and is broken into several components. Each
 
 
 ##### Notes
-  - *TODO: Figure out where trade transactions are handled. Probably a FSM fired up per trade request?*
-  - *TODO: `AtLeastOnceDelivery` to ensure a crash can recover a trade? Trade timeouts probably won't tolerate this but need an excuse to demo it.*
+  - *__TODO__: Consider using the FSM DSL for Trade Engine. Does it work well with Clustering and Persistence?*
+  - *__TODO__: `AtLeastOnceDelivery` to ensure a crash can recover a trade? Trade timeouts probably won't tolerate this but need an excuse to demo it.*
+  - *__TODO__: Should we find an excuse for Cluster Client*
 
 #### Frontend
 The **frontend** of the system is a node running [akka-http](http://doc.akka.io/docs/akka-stream-and-http-experimental/1.0/scala/http/)<sup>1</sup> ,  exposing a REST API for web users to trade, browse offerings, etc. This node (or nodes, if you choose to run multiple to load balance, etc) also acts as seed(s) for the cluster. With the default run scripts, the first **frontend** node will start on port `2551`.
@@ -92,4 +93,4 @@ Best behavior of the Vagrant setup will require some Vagrant plugins:
 vagrant plugin install vagrant-timezone # Set a timezone other than UTC on the host, for simplifying log reading
 ```
 
-Running `vagrant up --no-parallel` should attempt to bring up all of the configured nodes.
+Parallel execution of vagrant (The default) causes some fun race conditions due to container linking. ` VAGRANT_NO_PARALLEL=yes vagrant up` seems to be the best way to bring up all of the configured nodes.  

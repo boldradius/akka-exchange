@@ -89,7 +89,7 @@ class SharedJournalFinder extends Actor with ActorLogging {
 
   private def becomeSearching(): Unit = {
     // especially with docker bootups, we may as well take some time to get the node
-    context.setReceiveTimeout(180 seconds)
+    context.setReceiveTimeout(10 seconds)
     context.become(searching)
   }
 

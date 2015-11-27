@@ -3,10 +3,6 @@
 #
 # *SETUP INSTRUCTIONS*
 #
-# 1. docker-machine create -d virtualbox --virtualbox-memory 4096 --virtualbox-cpu-count 2 akka-exchange
-#   - Adjust cpu count and memory as needed, remembering we'll run several nodes
-#   * This sets up an expected virtualbox container for the akka-exchange system
-#   
 #
 
 BOX_NAME = "akka-exchange"
@@ -16,137 +12,131 @@ VAGRANTFILE_API_VERSION = "2"
 #Check if you have the good Vagrant version to use docker provider...
 Vagrant.require_version ">= 1.6.0"
 
+#print "ENV Vars"
+#ENV.each {|key, value| puts "#{key} is #{value}"}
 # My attempt at remembering my shell fu before I recalled Vagrant files are ruby.
 #AKKA_EXCHANGE_VERSION = `grep -m 1 project build.sbt | awk -F = '{print $2}' | tr -d \" | tr -d " "`
-AKKA_EXCHANGE_VERSION = open('build.sbt') { |f|
-  version_stub = f.grep(/val projectVersion\s*=\s*"([\d\w\-\.]+?)"/)
-  version_stub[0].scan(/"([\d\w\-\.]+?)"/)[0][0]
-}
+#AKKA_EXCHANGE_VERSION = open('build.sbt') { |f|
+#  version_stub = f.grep(/val projectVersion\s*=\s*"([\d\w\-\.]+?)"/)
+#  version_stub[0].scan(/"([\d\w\-\.]+?)"/)[0][0]
+#}
 AKKA_EXCHANGE_BASE_ARTIFACT = "akka-exchange"
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+COMMAND = ARGV[0]
+TARGET_CONTAINER = ARGV[1]
+
+# Commands we will run SBT Staging on
+STAGE_COMMANDS = ['up', 'provision', 'reload']
+# Commands we'll clean up SBT on
+CLEAN_COMMANDS = ['destroy']
+# Commands for which we check against if a target was specified to pause after container startup
+CONTAINER_PAUSE_COMMANDS = STAGE_COMMANDS
+
+
+#define_method("post_container_pause") do |container|
+  #if HAS_TARGET_CONTAINER
+    #puts "\e[1m\e[42;30m  ⚛ Sleeping 30 seconds to let container '#{container}' initialize... ⚛  \e[0m\n"
+    #sleep(30)
+  #end
+#end
+
+HAS_ARG = TARGET_CONTAINER.nil? || (!TARGET_CONTAINER.nil? && TARGET_CONTAINER.empty?)
+HAS_TARGET_CONTAINER = !HAS_ARG && !TARGET_CONTAINER.start_with?("-")
+
+# Some debug
+puts "Running Vagrant Command '#{COMMAND}'\n"
+#if HAS_TARGET_CONTAINER
+#  puts "Target Container: #{TARGET_CONTAINER}\n"
+#else
+#  puts "No target container.\n"
+#end
+
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
 
   # I find it terribly annoying to read logs on UTC
-  # If you want this to work, install 
+  # If you want this to work, install
   #     vagrant plugin install vagrant-timezone
   #
   if Vagrant.has_plugin?("vagrant-timezone")
-    config.timezone.value = "America/Los_Angeles"
+    c.timezone.value = "America/Los_Angeles"
   end
 
-  config.ssh.insert_key = false
-
-  # Disable synced folders for the Docker container
-  # (prevents an NFS error on "vagrant up")
-  config.vm.synced_folder ".", "/vagrant", disabled: true
-  
-
-  config.vm.provider "docker" do |docker|
-    ##docker.vagrant_machine = AKKA_EXCHANGE_BASE_ARTIFACT
-    ## May not be needed, as we can provision with docker-machine
-    docker.vagrant_vagrantfile = "Vagrantfile.host"
+  # Use docker-compose instead of the usual
+  # regular Docker config which is challenging at best.
+  if !Vagrant.has_plugin?("vagrant-docker-compose")
+    print "Installing missing Docker Compose plugin..."
+    system("vagrant plugin install vagrant-docker-compose")
   end
 
 
-  # todo - add optional second nodes of each?
-  config.vm.define "frontend-node" do |c|
-    print "\e[1m\e[43;30m  ☢ Using sbt to stage Docker for 'frontend' node ☢  \e[0m\n"
-    system("sbt frontend/docker:stage")
 
-    c.vm.hostname = "frontend"
-    c.vm.provider "docker" do |docker|
-      docker.build_dir = "./frontend/target/docker/stage"
-      docker.name = "frontend"
-      # Because our images boot up a app directly, don't want it trying to connect SSH etc
-      docker.has_ssh = false
-      docker.vagrant_vagrantfile = "Vagrantfile.host"
-      docker.ports = ["8080:8080"]
-      c.vm.synced_folder ".", "/vagrant", disabled: true
+  c.ssh.insert_key = false
+
+
+  c.vm.define "akka-exchange" do |config|
+    # Friendly name for host
+    config.vm.hostname = "akka-exchange"
+
+
+    # Skip checks for updated vagrant box since it'll be our own
+    config.vm.box_check_update = false
+
+    # Use Vagrant's default insecure key
+    #config.ssh.insert_key = false
+
+
+    config.vm.box = "phusion/ubuntu-14.04-amd64"
+    # The following line terminates all ssh connections. Therefore
+    # Vagrant will be forced to reconnect.
+    # That's a workaround to have the docker command in the PATH
+    # (This is necessary to provision properly; else Vagrant crashes after
+    # initialising VirtualBox and has to be run a second time)
+    config.vm.provision "shell", inline:
+       "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
+
+    # Setup the docker-ssh tool on the docker host
+    # I do a lot of direct debugging on the docker host (vagrant's box)
+    # so this is helpful for the debugger node, at least.
+    config.vm.provision "shell", inline:
+      %q(
+          curl --fail -L -O https://github.com/phusion/baseimage-docker/archive/master.tar.gz && \
+            tar xzf master.tar.gz && \
+            sudo ./baseimage-docker-master/install-tools.sh
+      )
+
+    config.vm.provision "file",
+              source: "./src/main/resources/docker-debug/bash_aliases",
+              destination: ".bash_aliases"
+
+    config.vm.provision :docker
+    config.vm.provision :docker_compose, yml: "/vagrant/docker-compose.yml", rebuild: true, run: "always"
+
+
+    config.vm.provider "virtualbox" do |vbox|
+      vbox.name = "akka-exchange"
+      vbox.cpus = 1
+      # Memory good, given how many nodes we start
+      vbox.memory = 8192
     end
+
+    # Exposes port 8080 on localhost to the VirtualBox docker host,
+    # which forwards to the frontend node
+    # frontend-01
+    #config.vm.network :forwarded_port, guest: 8080, host: 8082
+    # frontend-02
+    #config.vm.network :forwarded_port, guest: 8080, host: 8082
   end
 
-  config.vm.define "shared-journal-node" do |c|
-    print "\e[1m\e[43;30m  ☢ Using sbt to stage Docker for 'shared-journal' node ☢  \e[0m\n"
-    system("sbt journal/docker:stage")
-
-
-    c.vm.hostname = "shared-journal"
-    c.vm.provider "docker" do |docker|
-      docker.build_dir = "./journal/target/docker/stage"
-      docker.name = "shared-journal"
-      # Because our images boot up a app directly, don't want it trying to connect SSH etc
-      docker.has_ssh = false
-      docker.vagrant_vagrantfile = "Vagrantfile.host"
-      docker.link("frontend:seed")
-      docker.ports = ["2551:2551"]
-    end
+  if STAGE_COMMANDS.include? COMMAND
+    print "\e[1m\e[42;30m  ⚛ Using sbt to stage Docker for Akka Exchange ⚛  \e[0m\n"
+    system("sbt docker:stage")
   end
 
-  config.vm.define "trader-db-node" do |c|
-    print "\e[1m\e[43;30m  ☢ Using sbt to stage Docker for 'shared-journal' node ☢  \e[0m\n"
-    system("sbt traderDB/docker:stage")
-
-    c.vm.hostname = "trader-db"
-    c.vm.provider "docker" do |docker|
-      docker.build_dir = "./trader-db/target/docker/stage"
-      docker.name = "trader-db"
-      # Because our images boot up a app directly, don't want it trying to connect SSH etc
-      docker.has_ssh = false
-      docker.vagrant_vagrantfile = "Vagrantfile.host"
-      docker.link("frontend:seed")
-    end
+  if CLEAN_COMMANDS.include? COMMAND
+    print "\e[1m\e[41;30m  ☢ Using sbt to clean up code & Docker staging for Akka Exchange ☢  \e[0m\n"
+    system("sbt clean")
   end
-
-  config.vm.define "debug-node" do |c|
-    c.vm.hostname = "debugger"
-    c.vm.provider "docker" do |docker|
-      docker.build_dir = "./src/main/resources/docker-debug"
-      docker.name = "debugger"
-      # Because our images boot up a app directly, don't want it trying to connect SSH etc
-      docker.has_ssh = false
-      docker.vagrant_vagrantfile = "Vagrantfile.host"
-      docker.link("frontend:seed")
-      docker.ports = ["2222:2242"]
-    end
-  end
-
-
-  #config.vm.define "trade-engine-node" do |c|
-    #c.vm.provision "docker" do |docker|
-      #docker.run "trade-engine",
-            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-trade-engine",
-            #args: "-h trade-engine"
-    #end
-    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
-  #end
-
-  #config.vm.define "ticker-node" do |c|
-    #c.vm.provision "docker" do |docker|
-      #docker.run "ticker",
-            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-ticker",
-            #args: "-h ticker"
-    #end
-    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
-  #end
-
-
-  #config.vm.define "securities-db-node" do |c|
-    #c.vm.provision "docker" do |docker|
-      #docker.run "securities-db",
-            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-securities-db",
-            #args: "-h securities-db"
-    #end
-    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
-  #end
-
-  #config.vm.define "network-trade-node" do |c|
-    #c.vm.provision "docker" do |docker|
-      #docker.run "network-trade",
-            #image: "#{AKKA_EXCHANGE_BASE_ARTIFACT}-network-trade",
-            #args: "-h network-trade"
-    #end
-    #c.vm.provision "shell", inline: "ps aux | grep 'sshd:' | awk '{print $2}' | xargs kill"
-  #end
 
 
 end

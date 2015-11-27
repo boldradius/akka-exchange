@@ -1,15 +1,19 @@
 
 name := "akka-exchange"
- 
-val akkaVersion        = "2.4.0-RC1"
+
+val akkaVersion        = "2.4.0"
 val akkaStreamVersion  = "1.0"
 val akkaHttpVersion    = "1.0"
 val sigarLoaderVersion = "1.6.6-rev002"
 val logbackVersion     = "1.1.3"
 val projectVersion     = "0.1-SNAPSHOT"
+val squantsVersion     = "0.5.3"
+val nScalaTimeVersion  = "2.2.0"
+val groovyVersion      = "2.4.5"
+val scalatestVersion   = "2.2.4"
+val ficusVersion       = "1.1.2"
 
-
-lazy val commonSettings = Seq( 
+lazy val commonSettings = Seq(
   organization := "com.boldradius",
   version := projectVersion,
   scalaVersion := "2.11.7",
@@ -21,24 +25,21 @@ lazy val commonSettings = Seq(
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "ch.qos.logback" % "logback-classic" % logbackVersion,
     "io.kamon" % "sigar-loader" % sigarLoaderVersion,
+    "com.squants" %% "squants" % squantsVersion,
     // for the saner groovy config of Logback
-    "org.codehaus.groovy" % "groovy" % "2.4.3",
-    "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
-    "net.ceedubs" %% "ficus" % "1.1.2"
+    "com.github.nscala-time" %% "nscala-time" % nScalaTimeVersion,
+    "org.codehaus.groovy" % "groovy" % groovyVersion,
+    "org.scalatest" %% "scalatest" % scalatestVersion % "test",
+    "net.ceedubs" %% "ficus" % ficusVersion
   ),
   fork in (Test, run) := true,
   // Runs OpenJDK 8. Official docker image, should be safe to use.
-  dockerBaseImage := "java:8-jdk",
-  dockerUpdateLatest := true,
-  dockerExposedVolumes := Seq("/opt/docker/logs"),
   // todo: probably change me later when we have a non-snap version?
-  version in Docker := "latest",
-  // todo - change me once we figure out port(s)?
-  dockerExposedPorts := Seq(2551)
+  dockerBaseImage := "java:8-jdk"
 )
 
 lazy val root = (project in file(".")).
-  aggregate(util, journal, frontend, 
+  aggregate(util, journal, frontend,
             tradeEngine, ticker, securitiesDB,
             traderDB, networkTrade).
   settings(commonSettings: _*).
@@ -68,7 +69,8 @@ lazy val journal = project.
       "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
       "org.iq80.leveldb" % "leveldb" % "0.7",
       "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8"
-    )
+    ),
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -90,6 +92,7 @@ lazy val frontend = project.
       "com.typesafe.akka" % "akka-http-core-experimental_2.11" % akkaHttpVersion,
       "com.typesafe.akka" % "akka-http-experimental_2.11" % akkaHttpVersion
     ),
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh"),
     // todo - change me once we figure out port(s)?
     dockerExposedPorts ++= Seq(8080)
   ).
@@ -105,7 +108,9 @@ addCommandAlias("frontend2", "frontend/runMain com.boldradius.akka_exchange.fron
 lazy val tradeEngine = project.in(file("trade-engine")).
   settings(commonSettings: _*).
   settings(
-    name := "akka-exchange-trade-engine"  ).
+    name := "akka-exchange-trade-engine",
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
+  ).
   dependsOn(util).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
@@ -120,7 +125,8 @@ lazy val ticker = project.
     name := "akka-exchange-ticker",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
-    )  
+    ),  
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -136,7 +142,8 @@ lazy val securitiesDB = (project in file("securities-db")).
     name := "akka-exchange-securities-db",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-distributed-data-experimental" % akkaVersion
-    )  
+    ),
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -151,7 +158,8 @@ lazy val traderDB = (project in file("trader-db")).
     name := "akka-exchange-trader-db",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
-    )
+    ),
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
@@ -167,10 +175,10 @@ lazy val networkTrade = (project in file("network-trade")).
     name := "akka-exchange-network-trade",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" % "akka-stream-experimental_2.11" % akkaStreamVersion
-    )
+    ),
+    bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
   enablePlugins(JavaServerAppPackaging, DockerPlugin)
 
 addCommandAlias("network-trade", "networkTrade/runMain com.boldradius.akka_exchange.trade.network.NetworkTradeNodeApp -Dakka.remote.netty.tcp.port=2556")
-

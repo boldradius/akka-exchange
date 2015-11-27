@@ -1,0 +1,50 @@
+frontend-01:
+  extends:
+    file: docker-common.yml
+    service: frontend-node
+  ports:
+    - "8081:8080"
+
+  #frontend-02:
+  #extends:
+  #  file: docker-common.yml
+  #  service: frontend-node
+  #ports:
+  #  - "8082:8080"
+
+shared-journal:
+  extends:
+    file: docker-common.yml
+    service: akka-cluster-node
+  build: ./journal/target/docker/stage
+  links:
+    - frontend-01:seed-01
+
+trader-db-01:
+  extends:
+    file: docker-common.yml
+    service: trader-db-node
+  links:
+    - frontend-01
+    - shared-journal
+
+#trader-engine-01:
+  #extends:
+    #file: docker-common.yml
+    #service: trader-engine-node
+  #links:
+    #- frontend-01
+    #- frontend-02
+    #- shared-journal
+
+#ticker-01:
+  #extends:
+    #file: docker-common.yml
+    #service: ticker-node
+  #links:
+    #- frontend-01
+    #- frontend-02
+    #- shared-journal
+
+
+

@@ -36,7 +36,8 @@ object FrontendNodeApp extends ExchangeNodeBootable {
 
   val httpPort = config.as[Int]("akka-exchange.cluster.frontend.port")
 
-  val httpAddr = config.as[String]("akka-exchange.cluster.local.address")
+  // todo - make me based on local address so we don't need special config that locks out multiple http nodes
+  val httpAddr = config.as[String]("akka-exchange.cluster.frontend.address")
 
   Http().bindAndHandle(route, httpAddr, httpPort)
 }

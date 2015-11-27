@@ -1,0 +1,76 @@
+akka-cluster-node:
+  expose:
+    - "2551"
+  # Runs OpenJDK 8. Official docker image, should be safe to use.
+  # TODO: Move to the alpine based one which is much slimmer
+  image: java:8-jdk
+  environment:
+    IS_SEED: 1
+  volumes:
+    - /opt/docker/logs
+
+frontend-node:
+  extends:
+    service: akka-cluster-node
+  build: ./frontend/target/docker/stage
+  environment:
+    CLUSTER_ROLE: frontend
+    IS_SEED: 1
+  labels:
+    com.boldradius.description: "Frontend / Seed Node"
+
+shared-journal-node:
+  extends:
+    service: akka-cluster-node
+  build: ./journal/target/docker/stage
+  environment:
+    CLUSTER_ROLE: shared-journal
+  labels:
+    com.boldradius.description: "Shared Journal Node"
+
+trader-db-node:
+  extends:
+    service: akka-cluster-node
+  build: ./trader-db/target/docker/stage
+  environment:
+    CLUSTER_ROLE: trader-db
+  labels:
+    com.boldradius.description: "Trader Database Node"
+
+trader-engine-node:
+  extends:
+    service: akka-cluster-node
+  build: ./trade-engine/target/docker/stage
+  environment:
+    CLUSTER_ROLE: trader-engine
+  labels:
+    com.boldradius.description: "Trader Database Node"
+
+ticker-node:
+  extends:
+    service: akka-cluster-node
+  build: ./ticker/target/docker/stage
+  environment:
+    CLUSTER_ROLE: ticker
+  labels:
+    com.boldradius.description: "Trade Ticker Node"
+
+network-trade-node:
+  extends:
+    service: akka-cluster-node
+  build: ./network-trade/target/docker/stage
+  environment:
+    CLUSTER_ROLE: network-trade
+  labels:
+    com.boldradius.description: "Network Trade Node"
+
+securities-db-node:
+  extends:
+    service: akka-cluster-node
+  build: ./securities-db/target/docker/stage
+  environment:
+    CLUSTER_ROLE: securities-db
+  labels:
+    com.boldradius.description: "Securities DB Node"
+
+
