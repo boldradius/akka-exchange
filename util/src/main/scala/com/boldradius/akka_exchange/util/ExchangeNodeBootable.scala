@@ -36,11 +36,11 @@ abstract class ExchangeNodeBootable extends App {
 
   //val = config.as[String]("akka-exchange.cluster.container.address")
 
-  println("[Starting up with Seed Nodes]: " +
-    config.getStringList("akka.cluster.seed-nodes"))
+  println(s"[Starting up with Configuration]: $config")
 
-  println("[Environment Variables]: ")
-  sys.env.foreach { case (k, v) => println(s"\t Key: $k Value: $v") }
+  println(s"[Starting up with Seed Nodes]: ${config.getStringList("akka.cluster.seed-nodes")}")
+
+  println(s"[Environment Variables]: ${sys.env.foreach { case (k, v) => println(s"\t Key: $k Value: $v") }}")
 
 
   /**

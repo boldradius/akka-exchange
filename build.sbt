@@ -1,7 +1,7 @@
 
 name := "akka-exchange"
 
-val akkaVersion        = "2.4.0"
+val akkaVersion        = "2.4.1"
 val akkaStreamVersion  = "1.0"
 val akkaHttpVersion    = "1.0"
 val sigarLoaderVersion = "1.6.6-rev002"
