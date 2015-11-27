@@ -36,7 +36,8 @@ abstract class ExchangeNodeBootable extends App {
 
   //val = config.as[String]("akka-exchange.cluster.container.address")
 
-  println(s"[Starting up with Configuration]: $config")
+
+  println(s"[Starting up with Configuration]: ${config.root().render()}")
 
   println(s"[Starting up with Seed Nodes]: ${config.getStringList("akka.cluster.seed-nodes")}")
 

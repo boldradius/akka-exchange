@@ -1,5 +1,5 @@
 akka-cluster-node:
-  expose:
+  ports:
     - "2551"
   # Runs OpenJDK 8. Official docker image, should be safe to use.
   # TODO: Move to the alpine based one which is much slimmer
@@ -13,6 +13,10 @@ frontend-node:
   extends:
     service: akka-cluster-node
   build: ./frontend/target/docker/stage
+  ports:
+    - "8080"
+  expose:
+    - "8080"
   environment:
     CLUSTER_ROLE: frontend
     IS_SEED: 1
