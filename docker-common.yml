@@ -1,9 +1,8 @@
 akka-cluster-node:
   ports:
     - "2551"
-  # Runs OpenJDK 8. Official docker image, should be safe to use.
-  # TODO: Move to the alpine based one which is much slimmer
-  image: java:8-jdk
+  # Runs Fabric 8, alpine based JDK. Official JDK8 is almost a gig, Alpine is ~200MB
+  image: fabric8/java-alpine-openjdk8-jdk
   environment:
     IS_SEED: 1
   volumes:
