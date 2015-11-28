@@ -36,7 +36,7 @@ trader-db-01:
     - frontend-01:seed-01
     - shared-journal
 
-#trader-engine-01:
+#trade-engine-01:
   #extends:
     #file: docker-common.yml
     #service: trade-engine-node
