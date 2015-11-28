@@ -2,6 +2,7 @@ frontend-01:
   extends:
     file: docker-common.yml
     service: frontend-node
+  container_name: frontend-01
   # TODO: How do we make sure frontend 1 can be seen and vice versa to provide more seeds?
   # Docker says "circular dependency" like this
   #links:
@@ -11,6 +12,7 @@ frontend-01:
 #  extends:
 #    file: docker-common.yml
 #    service: frontend-node
+  #container_name: frontend-02
   # TODO: How do we make sure frontend 1 can be seen and vice versa to provide more seeds?
   # Docker says "circular dependency" like this
   #links:
@@ -21,6 +23,7 @@ shared-journal:
   extends:
     file: docker-common.yml
     service: shared-journal-node
+  container_name: shared_journal
   links:
     - frontend-01:seed-01
 
@@ -28,6 +31,7 @@ trader-db-01:
   extends:
     file: docker-common.yml
     service: trader-db-node
+  container_name: trader_db_01
   links:
     - frontend-01:seed-01
     - shared-journal
@@ -35,7 +39,8 @@ trader-db-01:
 #trader-engine-01:
   #extends:
     #file: docker-common.yml
-    #service: trader-engine-node
+    #service: trade-engine-node
+  #container_name: trade_engine_01
   #links:
     #- frontend-01
     #- frontend-02
@@ -45,6 +50,7 @@ trader-db-01:
   #extends:
     #file: docker-common.yml
     #service: ticker-node
+  #container_name: ticker-01
   #links:
     #- frontend-01
     #- frontend-02
