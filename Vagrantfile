@@ -115,7 +115,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |c|
 
     config.vm.provider "virtualbox" do |vbox|
       vbox.name = "akka-exchange"
-      vbox.cpus = 2
+      vbox.cpus = 1
       # Memory good, given how many nodes we start
       vbox.memory = 8192
     end

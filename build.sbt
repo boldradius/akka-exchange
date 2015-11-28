@@ -1,3 +1,4 @@
+import com.typesafe.sbt.packager.docker.ExecCmd
 
 name := "akka-exchange"
 
@@ -32,10 +33,22 @@ lazy val commonSettings = Seq(
     "org.scalatest" %% "scalatest" % scalatestVersion % "test",
     "net.ceedubs" %% "ficus" % ficusVersion
   ),
-  fork in (Test, run) := true//,
+  fork in (Test, run) := true,
   // Runs OpenJDK 8. Official docker image, should be safe to use.
   // todo: probably change me later when we have a non-snap version?
   //dockerBaseImage := "java:8-jdk"
+  // Runs Fabric 8, alpine based JDK. Official JDK8 is almost a gig, Alpine is ~200MB
+  // MUST be defined or defaults to java:latest, which overrides anything defined in compose
+  dockerBaseImage := "fabric8/java-alpine-openjdk8-jdk:1.0.10"  /*,
+  dockerCommands ++= Seq(
+    // Add bash. Alpine is *that* lightweight by default
+    ExecCmd("RUN",
+      "apk",
+      "add", "--update", "bash",
+      "&&",
+      "rm", "-rf", "/var/cache/apk/\*"
+    )
+  )*/
 )
 
 lazy val root = (project in file(".")).
@@ -73,7 +86,7 @@ lazy val journal = project.
     bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util).
-  enablePlugins(JavaServerAppPackaging, DockerPlugin)
+  enablePlugins(JavaServerAppPackaging, DockerPlugin, AshScriptPlugin) // Use SBT Docker's support for busyBox to not use bash. )
 
 
 
@@ -97,7 +110,7 @@ lazy val frontend = project.
     dockerExposedPorts ++= Seq(8080)
   ).
   dependsOn(util).
-  enablePlugins(JavaServerAppPackaging, DockerPlugin)
+  enablePlugins(JavaServerAppPackaging, DockerPlugin, AshScriptPlugin) // Use SBT Docker's support for busyBox to not use bash. )
 
 addCommandAlias("dockerize-journal", "frontend/docker:publishLocal")
 
@@ -112,7 +125,7 @@ lazy val tradeEngine = project.in(file("trade-engine")).
     bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util).
-  enablePlugins(JavaServerAppPackaging, DockerPlugin)
+  enablePlugins(JavaServerAppPackaging,  DockerPlugin, AshScriptPlugin) // Use SBT Docker's support for busyBox to not use bash. )
 
 addCommandAlias("trade-engine", "tradeEngine/runMain com.boldradius.akka_exchange.trade.engine.TradeEngineNodeApp -Dakka.remote.netty.tcp.port=2552")
 
@@ -125,11 +138,11 @@ lazy val ticker = project.
     name := "akka-exchange-ticker",
     libraryDependencies ++= Seq(
       "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
-    ),  
+    ),
     bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
-  enablePlugins(JavaServerAppPackaging, DockerPlugin)
+  enablePlugins(JavaServerAppPackaging,  DockerPlugin, AshScriptPlugin) // Use SBT Docker's support for busyBox to not use bash. )
 
 addCommandAlias("ticker", "ticker/runMain com.boldradius.akka_exchange.TickerNodeApp -Dakka.remote.netty.tcp.port=2553")
 
@@ -146,7 +159,7 @@ lazy val securitiesDB = (project in file("securities-db")).
     bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
-  enablePlugins(JavaServerAppPackaging, DockerPlugin)
+  enablePlugins(JavaServerAppPackaging,  DockerPlugin, AshScriptPlugin) // Use SBT Docker's support for busyBox to not use bash. )
 
 addCommandAlias("securities-db", "securitiesDB/runMain com.boldradius.akka_exchange.securities.db.SecuritiesDBNodeApp -Dakka.remote.netty.tcp.port=2554")
 
@@ -162,7 +175,7 @@ lazy val traderDB = (project in file("trader-db")).
     bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
-  enablePlugins(JavaServerAppPackaging, DockerPlugin)
+  enablePlugins(JavaServerAppPackaging,  DockerPlugin, AshScriptPlugin) // Use SBT Docker's support for busyBox to not use bash. )
 
 addCommandAlias("trader-db", "traderDB/runMain com.boldradius.akka_exchange.trade.db.TraderDBNodeApp -Dakka.remote.netty.tcp.port=2555")
 
@@ -179,6 +192,6 @@ lazy val networkTrade = (project in file("network-trade")).
     bashScriptExtraDefines ++=  IO.readLines(file(".") / "src" / "main" / "resources" / "docker-detect.sh")
   ).
   dependsOn(util, journal).
-  enablePlugins(JavaServerAppPackaging, DockerPlugin)
+  enablePlugins(JavaServerAppPackaging,  DockerPlugin, AshScriptPlugin) // Use SBT Docker's support for busyBox to not use bash. )
 
 addCommandAlias("network-trade", "networkTrade/runMain com.boldradius.akka_exchange.trade.network.NetworkTradeNodeApp -Dakka.remote.netty.tcp.port=2556")
