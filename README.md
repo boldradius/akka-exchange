@@ -1,6 +1,6 @@
 # akka-exchange
 
-<small>Copyright© 2015 BoldRadius Solutions</small>
+<small>Copyright © 2015-2016 BoldRadius Solutions</small>
 
 A demonstration multi-node Clustered Akka application including Spray, Sharding, Data Duplication (aka Replication), and Akka TCP / Streams.
 
