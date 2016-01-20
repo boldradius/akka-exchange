@@ -72,6 +72,9 @@ object SharedJournalFinder {
 class SharedJournalFinder extends Actor with ActorLogging {
   log.info("Searching for Shared Journal...")
 
+  // especially with docker bootups, we may as well take some time to get the node
+  context.setReceiveTimeout(180 seconds)
+
   override def preStart(): Unit =
     Cluster(context.system).subscribe(self, InitialStateAsEvents, classOf[MemberUp])
 
@@ -85,11 +88,13 @@ class SharedJournalFinder extends Actor with ActorLogging {
           "Checking for Journal Actor.", SharedJournal.name
       )
       onSharedJournalMemberUp(member)
+    case ReceiveTimeout =>
+      log.error("Timed out during search for Shared Journal. Did you start the node?")
+      context.stop(self)
+      throw new LinkageError("Unable to locate required Shared Journal in the cluster. This node cannot operate safely.")
   }
 
   private def becomeSearching(): Unit = {
-    // especially with docker bootups, we may as well take some time to get the node
-    context.setReceiveTimeout(10 seconds)
     context.become(searching)
   }
 
