@@ -32,7 +32,7 @@ The system utilizes Akka clustering, and is broken into several components. Each
   - [Trade Ticker Node](#trading-users): Replicated Feed of completed trades/current prices. Retrieves Trade notifications from the Event Bus. Saves the data via Akka Persistence.
   - [Trade Engine Node](#trade-engine): A Cluster Singleton which proxies the transactions for requested trades. Makes sure there's only ever one instance so that it can gate trades on a single item.
   - [Trading Users DB Node(s)](#trading-users): Sharded Database of active users and their portfolios (all the bids and offers they have on particular stocks & bonds). Utilizes Sharding & Persistence.
-  - [Securities DB Node (s)](#securities): Database of known Securities, i.e. Stocks & Bonds. Utilizes Sharding & Data Distribution (aka Replication). 
+  - [Securities DB Node (s)](#securities): Database of known Securities, i.e. Stocks & Bonds. Utilizes Data Distribution (aka Replication). 
   - [Network Trade API Node(s)](#network-trade-api): Network API for Trading, using a Binary Protocol. Utilizes Akka IO and Akka Streams for the sample client.
 
 
