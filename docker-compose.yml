@@ -123,6 +123,7 @@ cluster-console:
     - "3001:3001"
   expose:
     - "9000"
+  net: "host"
   image: cluster-console
   container_name: cluster-console
   volumes:
