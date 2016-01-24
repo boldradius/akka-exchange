@@ -44,7 +44,7 @@ trader-db-node:
   labels:
     com.boldradius.description: "Trader Database Node"
 
-trader-engine-node:
+trade-engine-node:
   extends:
     service: akka-cluster-node
   build: ./trade-engine/target/docker/stage

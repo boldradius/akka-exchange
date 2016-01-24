@@ -3,20 +3,15 @@ frontend-01:
     file: docker-common.yml
     service: frontend-node
   container_name: frontend-01
-  # TODO: How do we make sure frontend 1 can be seen and vice versa to provide more seeds?
-  # Docker says "circular dependency" like this
-  #links:
-  #  - frontend-02:seed-02
 
-#frontend-02:
-#  extends:
-#    file: docker-common.yml
-#    service: frontend-node
-  #container_name: frontend-02
-  # TODO: How do we make sure frontend 1 can be seen and vice versa to provide more seeds?
+frontend-02:
+  extends:
+    file: docker-common.yml
+    service: frontend-node
+  container_name: frontend-02
   # Docker says "circular dependency" like this
-  #links:
-  #  - frontend-01:seed-01
+  links:
+    - frontend-01:seed-01
 
 
 shared-journal:
@@ -26,6 +21,7 @@ shared-journal:
   container_name: shared_journal
   links:
     - frontend-01:seed-01
+    - frontend-02:seed-02
 
 trader-db-01:
   extends:
@@ -34,27 +30,38 @@ trader-db-01:
   container_name: trader_db_01
   links:
     - frontend-01:seed-01
+    - frontend-02:seed-02
     - shared-journal
 
-#trade-engine-01:
-  #extends:
-    #file: docker-common.yml
-    #service: trade-engine-node
-  #container_name: trade_engine_01
-  #links:
-    #- frontend-01
-    #- frontend-02
-    #- shared-journal
+trade-engine-01:
+  extends:
+    file: docker-common.yml
+    service: trade-engine-node
+  container_name: trade_engine_01
+  links:
+    - frontend-01:seed-01
+    - frontend-02:seed-02
+    - shared-journal
 
-#ticker-01:
-  #extends:
-    #file: docker-common.yml
-    #service: ticker-node
-  #container_name: ticker-01
-  #links:
-    #- frontend-01
-    #- frontend-02
-    #- shared-journal
+trade-engine-02:
+  extends:
+    file: docker-common.yml
+    service: trade-engine-node
+  container_name: trade_engine_02
+  links:
+    - frontend-01:seed-01
+    - frontend-02:seed-02
+    - shared-journal
+
+ticker-01:
+  extends:
+    file: docker-common.yml
+    service: ticker-node
+  container_name: ticker-01
+  links:
+    - frontend-01:seed-01
+    - frontend-02:seed-02
+    - shared-journal
 
 
 
