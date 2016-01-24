@@ -2,66 +2,129 @@ frontend-01:
   extends:
     file: docker-common.yml
     service: frontend-node
+  environment:
+    AKKA_ADDRESS: 127.0.0.1
+    AKKA_PORT: 2551
+    AKKA_BIND_ADDRESS: 0.0.0.0
+    AKKA_BIND_PORT: 2551
+  ports:
+    - "2551:2551"
+    - "8080:8080"
+  expose:
+    - "8080"
   container_name: frontend-01
+  volumes:
+    - /opt/docker/logs/frontend-01
 
 frontend-02:
   extends:
     file: docker-common.yml
     service: frontend-node
+  environment:
+    AKKA_ADDRESS: 127.0.0.1
+    AKKA_PORT: 2552
+    AKKA_BIND_ADDRESS: 0.0.0.0
+    AKKA_BIND_PORT: 2552
+  ports:
+    - "2552:2552"
+    - "8080:8081"
+  expose:
+    - "8081"
   container_name: frontend-02
-  # Docker says "circular dependency" like this
-  links:
-    - frontend-01:seed-01
+  volumes:
+    - /opt/docker/logs/frontend-02
 
 
 shared-journal:
   extends:
     file: docker-common.yml
     service: shared-journal-node
+  environment:
+    AKKA_ADDRESS: 127.0.0.1
+    AKKA_PORT: 2553
+    AKKA_BIND_ADDRESS: 0.0.0.0
+    AKKA_BIND_PORT: 2553
+  ports:
+    - "2553:2553"
   container_name: shared_journal
-  links:
-    - frontend-01:seed-01
-    - frontend-02:seed-02
+  volumes:
+    - /opt/docker/logs/shared-journal
 
 trader-db-01:
   extends:
     file: docker-common.yml
     service: trader-db-node
+  environment:
+    AKKA_ADDRESS: 127.0.0.1
+    AKKA_PORT: 2554
+    AKKA_BIND_ADDRESS: 0.0.0.0
+    AKKA_BIND_PORT: 2554
+  ports:
+    - "2554:2554"
   container_name: trader_db_01
-  links:
-    - frontend-01:seed-01
-    - frontend-02:seed-02
-    - shared-journal
+  volumes:
+    - /opt/docker/logs/trader-db-01
 
 trade-engine-01:
   extends:
     file: docker-common.yml
     service: trade-engine-node
+  environment:
+    AKKA_ADDRESS: 127.0.0.1
+    AKKA_PORT: 2555
+    AKKA_BIND_ADDRESS: 0.0.0.0
+    AKKA_BIND_PORT: 2555
+  ports:
+    - "2555:2555"
   container_name: trade_engine_01
-  links:
-    - frontend-01:seed-01
-    - frontend-02:seed-02
-    - shared-journal
+  volumes:
+    - /opt/docker/logs/trade-engine-01
 
 trade-engine-02:
   extends:
     file: docker-common.yml
     service: trade-engine-node
+  environment:
+    AKKA_ADDRESS: 127.0.0.1
+    AKKA_PORT: 2556
+    AKKA_BIND_ADDRESS: 0.0.0.0
+    AKKA_BIND_PORT: 2556
+  ports:
+    - "2556:2556"
   container_name: trade_engine_02
-  links:
-    - frontend-01:seed-01
-    - frontend-02:seed-02
-    - shared-journal
+  volumes:
+    - /opt/docker/logs/trade-engine-02
 
 ticker-01:
   extends:
     file: docker-common.yml
     service: ticker-node
+  environment:
+    AKKA_ADDRESS: 127.0.0.1
+    AKKA_PORT: 2557
+    AKKA_BIND_ADDRESS: 0.0.0.0
+    AKKA_BIND_PORT: 2557
+  ports:
+    - "2557:2557"
   container_name: ticker-01
-  links:
-    - frontend-01:seed-01
-    - frontend-02:seed-02
-    - shared-journal
+  volumes:
+    - /opt/docker/logs/ticker-01
+
+cluster-console:
+  environment:
+    AKKA_ADDRESS: 127.0.0.1
+    AKKA_PORT: 3001
+    AKKA_BIND_ADDRESS: 0.0.0.0
+    AKKA_BIND_PORT: 3001
+  ports:
+    - "9000:9000"
+    - "3001:3001"
+  expose:
+    - "9000"
+  image: cluster-console
+  container_name: cluster-console
+  volumes:
+    - /opt/docker/logs/cluster-console
 
 
 

@@ -1,6 +1,4 @@
 akka-cluster-node:
-  ports:
-    - "2551"
   # Runs Fabric 8, alpine based JDK. Official JDK8 is almost a gig, Alpine is ~200MB
   # NOTE: if you're building from SBT you'll also need to make sure SBT has an image name,
   # or it'll default to java:latest which overrides this value
@@ -8,18 +6,13 @@ akka-cluster-node:
   image: fabric8/java-alpine-openjdk8-jdk:1.0.10
   environment:
     IS_SEED: 1
-  volumes:
-    - /opt/docker/logs
   #RUN apk add --update bash && rm -rf /var/cache/apk/*
+  net: "host"
 
 frontend-node:
   extends:
     service: akka-cluster-node
   build: ./frontend/target/docker/stage
-  ports:
-    - "8080"
-  expose:
-    - "8080"
   environment:
     CLUSTER_ROLE: frontend
     IS_SEED: 1
