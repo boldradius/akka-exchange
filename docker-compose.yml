@@ -7,6 +7,7 @@ frontend-01:
     AKKA_PORT: 2551
     AKKA_BIND_ADDRESS: 0.0.0.0
     AKKA_BIND_PORT: 2551
+    REST_PORT: 8080
   ports:
     - "2551:2551"
     - "8080:8080"
@@ -25,6 +26,7 @@ frontend-02:
     AKKA_PORT: 2552
     AKKA_BIND_ADDRESS: 0.0.0.0
     AKKA_BIND_PORT: 2552
+    REST_PORT: 8081
   ports:
     - "2552:2552"
     - "8080:8081"
