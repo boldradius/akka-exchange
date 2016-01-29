@@ -124,7 +124,7 @@ cluster-console:
   expose:
     - "9000"
   net: "host"
-  image: cluster-console
+  image: boldradius/astrolabe
   container_name: cluster-console
   volumes:
     - /opt/docker/logs/cluster-console
