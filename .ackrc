@@ -1,0 +1,4 @@
+--ignore-dir=.git
+--ignore-dir=.idea
+--ignore-dir=target
+--no-xml
